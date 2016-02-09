@@ -1,24 +1,32 @@
---Created by Jonni-e 9.2.2016
---This lua file needs to be located in your mpv scripts folder 
---windows: C:\Users\anon\AppData\Roaming\mpv\scripts
---linux: ~/.config/mpv/scripts/
---or called with --script=<path>
+-- Created by Jonni-e 9.2.2016
+-- This lua file needs to be located in your mpv scripts folder, or called with --script=<path>
+-- Windows: C:\Users\anon\AppData\Roaming\mpv\scripts
+-- Linux: ~/.config/mpv/scripts/
+--
+-- This script is created for the purpose of saving someone from navigating in their 
+-- download folder for unwatched episodes of shows.
+--
+-- Keybind 1: Playlist-mode-toggle(W), when activating playlist-mode all unwatched shows from 
+-- media directory will be appended to the playlist, and new files be searched for on load and 80%playthrough.
+-- When toggling off playlist-mode, automatic searches for files will no longer be done.
+-- Skipped files in playlist-mode will append to the end of the playlist. 
+-- Allowing you to skip over files if you want to see your unwatched shows in a certain order.
+--
+-- Keybind 2: mark-seen(w), will mark an unwatched episode as watched. 
+-- Note that this will also happen automatically when video reaches 80%.
+--
+-- Without activating playlist-mode (W) this script will keep track of watched files.
+-- If mpv is ran without a terminal then search() will cause momentary popup windows. Remember you can toggle it off after loading the playlist with another (W).
+-- If you use --idle the script will continue to wait for files in idle mode if playlist-mode is activated.
+-- So for example to load all your unseen videos run "mpv --idle" and press keybind for Playlist-mode-toggle(W). 
+--
+-----------------------------------------------------------------------------------------
 
---This script is created for the purpose of saving someone from navigating in their download folder for unwatched episodes of shows.
-
---keybind1: Playlist-mode-toggle(W), when activating playlist-mode all unwatched shows from directory will be appended to the playlist, and new files be searched for on load and 80%playthrough.
---when toggling off playlist-mode, automatic searches for files will no longer be done.
---Also skipped files in playlist-mode will append to the end of the playlist. Allowing you to skip over files if you want to see your unwatched shows in certain order.
---keybind2: mark-seen(w), will mark an unwatched episode as watched. Note that this will happen automatically when video reaches 80%.
-
---Without activating playlist-mode (W) this script will keep track of watched files, and youtube urls(perhaps expand this to a youtube-playlistmaker too).
---if mpv is ran without a terminal search() will cause momentary popup windows.
---if you use --idle the script will continue to wait for files in idle mode if playlist-mode is activated
---so for example to load all your unseen videos to run > mpv --idle and press keybind for Playlist-mode-toggle 
-
---EDIT this path below to where you want your text file of watched shows placed, note the escape strings on widows paths, and traling / or \ because path will be chained with filenames
---Make sure you have read and write permissions in the scriptloc folder, you might need to also disable UAC with regedit if you want to save to system folders on windows
---to test write permission, just open mpv --idle, if the list.txt file is created then permissions should be fine
+--EDIT this path below to where you want your text file of watched shows placed
+--note the escape strings on widows paths and traling / or \ because path will be chained with filenames.
+--Make sure you have read and write permissions in the scriptloc folder
+--you might need to disable UAC with regedit if you want to save to system folders on windows.
+--To test write permission just open mpv --idle, if the list.txt file is created then permissions should be fine.
 --I suggest using an absolute path.
 local scriptloc="D:\\users\\anon\\Downloads(hdd)\\shortcuts\\scripts\\" 
 
@@ -26,8 +34,9 @@ local scriptloc="D:\\users\\anon\\Downloads(hdd)\\shortcuts\\scripts\\"
 local fileloc="D:\\users\\anon\\Downloads(hdd)\\animu-temp\\"
 
 --change the scan below to suit your needs, note that all unwatched files this search finds, will try to be opened in mpv. 
---on default it searches all mkv files in fileloc folder, and lists them one per line. replace '*mkv' with '*' to seach all filetypes.
---scanning files from subdirectories will break the for loop in search(). The workaround for this is different on linux and windows so I'll leave it for you to figure out if you want it.
+--on default it searches all mkv files in fileloc folder, and lists them one per line. 
+--replace '*mkv' with '*' to seach all filetypes.
+--scanning files from subdirectories will break the for loop in search().
 --local scan = 'find "'..fileloc..'*mkv" -type f -printf "%f\n"' --linux version
 local scan = 'dir /b "'..fileloc..'*mkv"' --windows version
 
@@ -49,6 +58,7 @@ else
     test:close() 
 end
 
+--file is loaded
 function on_load(event)
     filename = mp.get_property('filename')
     path = mp.get_property('path')
@@ -58,9 +68,11 @@ function on_load(event)
     if dur then timecheck() else mark=true end
 end
 
---if playlist-mode is active, skipped files are appended to end of playlist and when entering --idle the player will continue to listen for new files.
+ and when 
+
 function on_close(event)
     filename=nil
+    --if playlist-mode is active, unwatched files are appended to end of playlist
     if mark == false and active then
         mp.commandv("loadfile", path, "append")
     end
@@ -128,12 +140,11 @@ function watched(args)
         else
             if args~='timer' then mp.msg.info("File already marked as watched: " .. filename) end
         end
-	    file:close()
+	file:close()
 	end
 end
 
 --Toggles playlist mode to listen for new files and calls an initial search for files
---creates an array containing seen episodes
 function activate(args)
     if active==false then
         if mp.get_property('idle')=='yes' then idle_timer() end
@@ -186,5 +197,3 @@ mp.add_key_binding('w', 'mark-seen', watched)
 mp.add_key_binding('W', 'playlist-mode-toggle', activate)
 mp.register_event('file-loaded', on_load)
 mp.register_event('end-file', on_close)
-
-
