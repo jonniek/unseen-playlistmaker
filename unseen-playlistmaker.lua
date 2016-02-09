@@ -23,7 +23,7 @@
 -----------------------------------------------------------------------------------------
 
 --EDIT this path below to where you want your text file of watched shows placed
---note the escape strings on widows paths and traling / or \ because path will be chained with filenames.
+--note the escape strings on windows paths and traling / or \ because path will be chained with filenames.
 --Make sure you have read and write permissions in the scriptloc folder
 --you might need to disable UAC with regedit if you want to save to system folders on windows.
 --To test write permission just open mpv --idle, if the list.txt file is created then permissions should be fine.
