@@ -4,7 +4,7 @@ This script keeps track of your watched files locally, and on keybind enters pla
   
 ####Default features:
 * Marks file as seen into a text document when surpassing 80% duration.
-* Keybind(w) manually appends a file as watched.  
+* Keybind(w) manually marks file as watched.  
   
 ####Playlist-mode features:
 * Immidiately load all your unwatched files into a playlist.
