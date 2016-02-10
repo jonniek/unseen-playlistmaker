@@ -9,7 +9,7 @@ This script keeps track of your watched files locally, and on keybind enters pla
   
 ####Playlist-mode features:
 * Immidiately load all your unwatched files into a playlist.
-* Periodically continue to load new unwatched shows into playlist(persists in idle).
+* Periodically continue to load new unwatched files into playlist(persists in idle).
 * On file skip, appends it to the end of the playlist, allowing you to see files in the order you want.  
 
 ####Keybinds:
