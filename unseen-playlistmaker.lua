@@ -19,7 +19,7 @@
 -- If mpv is ran without a terminal then search() will cause momentary popup windows. Remember you can toggle it off after loading the playlist with another (W).
 -- If you use --idle the script will continue to wait for files in idle mode if playlist-mode is activated.
 -- So for example to load all your unseen videos run "mpv --idle" and press keybind for Playlist-mode-toggle(W). 
---
+-- Make sure your torrent client stores uncompleted files somewhere else, or they will be loaded incomplete.
 -----------------------------------------------------------------------------------------
 
 --EDIT this path below to where you want your text file of watched shows placed
