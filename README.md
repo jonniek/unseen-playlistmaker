@@ -1,3 +1,4 @@
+
 #MPV unseen-playlistmaker
 -----------
 This script keeps track of your watched files locally, and on keybind enters playlist-mode to watch unseen files.
@@ -22,3 +23,7 @@ This script keeps track of your watched files locally, and on keybind enters pla
 3. Run `mpv --idle` to create the list.txt file in the scriptloc path you chose.
 4. If the txt file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions.
 5. Read the comments on the lua if you want to change keybinds, timers etc.
+
+#####Possible future expansions:
+* Youtube subscriptions playlist-maker
+* Sorting playlist if episodes are loaded in the wrong order(only happens if episodes are added on different scans).
