@@ -16,10 +16,13 @@
 -- Note that this will also happen automatically when video reaches 80%.
 --
 -- Without activating playlist-mode (W) this script will keep track of watched files.
--- If mpv is ran without a terminal then search() will cause momentary popup windows. Remember you can toggle it off after loading the playlist with another (W).
--- If you use --idle the script will continue to wait for files in idle mode if playlist-mode is activated.
+-- If mpv is ran without a terminal then search() will cause momentary popup windows. 
+-- Remember you can toggle it off after loading the playlist with another (W).
+-- If you use --idle the script will continue to wait for files in idle mode if playlist-mode is active.
 -- So for example to load all your unseen videos run "mpv --idle" and press keybind for Playlist-mode-toggle(W). 
--- Make sure your torrent client stores uncompleted files somewhere else, or they will be loaded incomplete.
+-- Make sure your torrent client stores incompleted files somewhere else, or they won't be loaded again once complete
+-- I have tried minimizing errors with incomplete files but better safe than sorry
+-- Files that are being copied over will not be loaded incomplete.
 -----------------------------------------------------------------------------------------
 
 --EDIT this path below to where you want your text file of watched shows placed
@@ -33,18 +36,29 @@ local scriptloc="D:\\users\\anon\\Downloads(hdd)\\shortcuts\\scripts\\"
 --Below is path to media files, note that this script is designed with only one media path in mind. 
 local fileloc="D:\\users\\anon\\Downloads(hdd)\\animu-temp\\"
 
+local filetypes = {'*mkv','*mp4'} -- add whatever you want in the same format
+local search =' '
+for w in pairs(filetypes) do
+    search = search..fileloc..filetypes[w]..' '
+    --search = search..'"'..fileloc..filetypes[w]..'" ' --alternative that quotes searches if path has spaces, windows only
+end
+
 --change the scan below to suit your needs, note that all unwatched files this search finds, will try to be opened in mpv. 
 --on default it searches all mkv files in fileloc folder, and lists them one per line. 
---replace '*mkv' with '*' to seach all filetypes.
+--replace '*mkv' with whatever filetype you want to search.
 --scanning files from subdirectories will break the for loop in search().
---local scan = 'find "'..fileloc..'*mkv" -type f -printf "%f\n"' --linux version
-local scan = 'dir /b "'..fileloc..'*mkv"' --windows version
 
+--local scan = 'find'..search..'-type f -printf "%f\n"' --linux version
+local scan = 'dir /b'..search --windows version
+
+
+-----------------------------------------------------------------------------------------
 local txtfile=scriptloc.."list.txt"
 local mp=require 'mp'
 local filename=nil
 local mark=false
 local seenarray={}
+local loadingarray={}
 local active = false
 local idle = nil
 
@@ -72,7 +86,7 @@ end
 function on_close(event)
     filename=nil
     --if playlist-mode is active, unwatched files are appended to end of playlist
-    if mark == false and active then
+    if mark == false and active and path then
         mp.commandv("loadfile", path, "append")
     end
     idle=mp.get_property('idle')
@@ -95,7 +109,7 @@ function idle_timer(arg)
     if idle ~= 'yes' or idleact == false then return end
     search()
     --change below how often you want to listen for new files when idle
-    mp.add_timeout(5, idle_timer)
+    mp.add_timeout(1, idle_timer)
     
 end
 
@@ -122,16 +136,16 @@ end
 --this text file is loaded in search()
 function watched(args)
     if filename == nil then return end
-	if mark == false then 
+    if mark == false then 
         mark = true 
     else 
         if args~='timer' then mp.msg.info("File already marked as watched: " .. filename) end
         return 
     end
-	local file, err = io.open(txtfile, "a+")
-	if file==nil then
+    local file, err = io.open(txtfile, "a+")
+    if file==nil then
         mp.msg.info("Error opening list.txt in watched()")
-	else
+    else
         local x=file:read("*l")
         local match=false
         while x ~= nil do 
@@ -144,8 +158,8 @@ function watched(args)
         else
             if args~='timer' then mp.msg.info("File already marked as watched: " .. filename) end
         end
-	file:close()
-	end
+    file:close()
+    end
 end
 
 --Toggles playlist mode to listen for new files and calls an initial search for files
@@ -157,7 +171,7 @@ function activate(args)
         active = true
         search()
     else
-    	if mp.get_property('idle')=='yes' then idle_timer('deactive') end
+        if mp.get_property('idle')=='yes' then idle_timer('deactive') end
         mp.unregister_event('file-loaded', search)
         mp.msg.info("Disabling playlist mode.")
         active = false
@@ -181,10 +195,10 @@ function search(args)
     local popen = io.popen(scan)
     for dirx in popen:lines() do
         if not seenarray[dirx] then
-            --checking that file is not open/written on
+            --checking that file is not being copied
             local errcheck = io.open(fileloc..dirx, "r") 
             if errcheck then  
-                errcheck:close() 
+                errcheck:close()
                 seenarray[dirx]='true'
                 count = count +1
                 mp.commandv("loadfile", fileloc..dirx, "append-play")
