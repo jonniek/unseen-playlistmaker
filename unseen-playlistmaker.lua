@@ -30,7 +30,7 @@
 --Make sure you have read and write permissions in the scriptloc folder
 --you might need to disable UAC with regedit if you want to save to system folders on windows.
 --To test write permission just open mpv --idle, if the list.txt file is created then permissions should be fine.
---I suggest using an absolute path.
+--I suggest using an absolute path, otherwise list.txt location will not be absolute.
 local scriptloc="D:\\users\\anon\\Downloads(hdd)\\shortcuts\\scripts\\" 
 
 --Below is path to media files, note that this script is designed with only one media path in mind. 
@@ -45,8 +45,8 @@ end
 
 --change the scan below to suit your needs, note that all unwatched files this search finds, will try to be opened in mpv. 
 --on default it searches all mkv files in fileloc folder, and lists them one per line. 
---replace '*mkv' with whatever filetype you want to search.
 --scanning files from subdirectories will break the for loop in search().
+--whatever you scan, make sure the result is one file per line, filename only.
 
 --local scan = 'find'..search..'-type f -printf "%f\n"' --linux version
 local scan = 'dir /b'..search --windows version
