@@ -34,7 +34,7 @@
 local scriptloc="D:\\users\\anon\\Downloads(hdd)\\shortcuts\\scripts\\" 
 
 --Below is path to media files, note that this script is designed with only one media path in mind. 
-local fileloc="D:\\users\\anon\\Downloads(hdd)\\animu-temp\\"
+local fileloc="D:\\users\\anon\\Downloads(hdd)\\"
 
 local filetypes = {'*mkv','*mp4'} -- add whatever you want in the same format
 local search =' '
