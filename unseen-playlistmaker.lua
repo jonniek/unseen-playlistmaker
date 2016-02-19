@@ -48,7 +48,7 @@ end
 --scanning files from subdirectories will break the for loop in search().
 --whatever you scan, make sure the result is one file per line, filename only.
 
---local scan = 'find'..search..'-type f -printf "%f\n"' --linux version
+--local scan = 'find'..search..'-type f -printf "%f\\n"' --linux version, untested, fiddle around until it werks
 local scan = 'dir /b'..search --windows version
 
 
