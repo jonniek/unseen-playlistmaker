@@ -44,7 +44,7 @@ for w in pairs(filetypes) do
 end
 
 --change the scan below to suit your needs, note that all unwatched files this search finds, will try to be opened in mpv. 
---on default it searches all mkv files in fileloc folder, and lists them one per line. 
+--on default it searches all mkv and mp4 files in fileloc folder, and lists them one per line. 
 --scanning files from subdirectories will break the for loop in search().
 --whatever you scan, make sure the result is one file per line, filename only.
 
