@@ -109,7 +109,7 @@ function idle_timer(arg)
     if idle ~= 'yes' or idleact == false then return end
     search()
     --change below how often you want to listen for new files when idle
-    mp.add_timeout(1, idle_timer)
+    mp.add_timeout(5, idle_timer)
     
 end
 
