@@ -88,6 +88,7 @@ function on_close(event)
     --if playlist-mode is active, unwatched files are appended to end of playlist
     if mark == false and active and path then
         mp.commandv("loadfile", path, "append")
+        mp.commandv("playlist-remove", mp.get_property('playlist-pos')-1)
     end
     idle=mp.get_property('idle')
     if idle == 'yes' and active then 
