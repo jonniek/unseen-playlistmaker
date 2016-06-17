@@ -24,6 +24,6 @@ This script keeps track of your watched files locally, and on keybind enters pla
 4. If the txt file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions.
 5. Read the comments on the lua if you want to change keybinds, timers etc.
 
-#####Possible future expansions:
-* Youtube subscriptions playlist-maker
-* Sorting playlist if episodes are loaded in the wrong order(only happens if episodes are added on different scans).
+#### My other mpv scripts
+- https://github.com/donmaiq/Mpv-Playlistmanager
+  - Does not work properly in combination with unseen-playlistmaker, use this combined script instead http://puu.sh/pwjZT/953f9a1e1a.lua
