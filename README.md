@@ -26,4 +26,4 @@ This script keeps track of your watched files locally, and on keybind enters pla
 
 #### My other mpv scripts
 - https://github.com/donmaiq/Mpv-Playlistmanager
-  - Does not work properly in combination with unseen-playlistmaker, use this combined script instead http://puu.sh/pwjZT/953f9a1e1a.lua
+
