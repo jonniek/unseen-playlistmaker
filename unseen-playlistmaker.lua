@@ -87,10 +87,14 @@ function on_close(event)
     filename=nil
     --if playlist-mode is active, unwatched files are appended to end of playlist
     if mark == false and active and path then
-        mp.commandv("loadfile", path, "append")
-        if mp.get_property('playlist-pos')-1>-1 then
-            mp.commandv("playlist-remove", mp.get_property('playlist-pos')-1)
+        local oldfile = mp.get_property('playlist/'..(mp.get_property('playlist-pos')-1)..'/filename')
+        local oldfile2 = mp.get_property('playlist/'..(mp.get_property('playlist-pos')+1)..'/filename')
+        if path==oldfile then 
+            mp.commandv("playlist-remove", mp.get_property('playlist-pos')-1) 
+        elseif path==oldfile2 then 
+            mp.commandv("playlist-remove", mp.get_property('playlist-pos')+1) 
         end
+        mp.commandv("loadfile", path, "append")
     end
     idle=mp.get_property('idle')
     if idle == 'yes' and active then 
