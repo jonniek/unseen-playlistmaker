@@ -26,4 +26,5 @@ This script keeps track of your watched files locally, and on keybind enters pla
 
 #### My other mpv scripts
 - https://github.com/donmaiq/Mpv-Playlistmanager
+- https://github.com/donmaiq/Mpv-Radio
 
