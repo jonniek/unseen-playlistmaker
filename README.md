@@ -24,6 +24,10 @@ This script keeps track of your watched files locally, and on keybind enters pla
 4. If the txt file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions.
 5. Read the comments on the lua if you want to change keybinds, timers etc.
 
+####Files
+- unseen-playlistmaker.lua as described above
+- unseen+playlistmanager.lua as described above with playlistmanager integrated(see link below)
+
 #### My other mpv scripts
 - https://github.com/donmaiq/Mpv-Playlistmanager manager only, combined one unseen+playlistmanager.lua in this repo
 - https://github.com/donmaiq/Mpv-Radio
