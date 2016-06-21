@@ -25,6 +25,6 @@ This script keeps track of your watched files locally, and on keybind enters pla
 5. Read the comments on the lua if you want to change keybinds, timers etc.
 
 #### My other mpv scripts
-- https://github.com/donmaiq/Mpv-Playlistmanager
+- https://github.com/donmaiq/Mpv-Playlistmanager manager only, combined one unseen+playlistmanager.lua in this repo
 - https://github.com/donmaiq/Mpv-Radio
 
