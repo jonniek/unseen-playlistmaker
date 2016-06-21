@@ -9,7 +9,7 @@ local settings = {
     --unseen playlistmaker settings
     unseen_load_on_start = false,                                       --toggle to load unseen playlistmaker on startup, use only if loading script manually
     unseen_filetypes = {'*mkv','*mp4'},                                 --unseen-playlistmaker filetypes, {'*'} for all filetypes
-    unseen_searchpath = "D:\\users\\anon\\Downloads(hdd)\\animu-temp\\",--path to media files where unseen-playlistmaker should look for files 
+    unseen_searchpath = "D:\\users\\anon\\",                            --path to media files where unseen-playlistmaker should look for files 
     unseen_savedpath="X:\\code\\mpv\\list.txt"                          --file and path to where to save seen shows 
 
 }
