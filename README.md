@@ -19,10 +19,9 @@ This script keeps track of your watched files locally, and on keybind enters pla
   
 #####Setup:
 1. Save lua in mpv/scripts folder.
-2. Edit the scriptloc, fileloc and scan variables inside the lua.
+2. Edit the filepaths in settings array.
 3. Run `mpv --idle` to create the list.txt file in the scriptloc path you chose.
 4. If the txt file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions.
-5. Read the comments on the lua if you want to change keybinds, timers etc.
 
 ####Files
 - unseen-playlistmaker.lua as described above
