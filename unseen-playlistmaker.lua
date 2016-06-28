@@ -15,7 +15,6 @@ local seenarray={}
 local loadingarray={}
 local active = false
 local idle = nil
-local first = true
 local search =' '
 for w in pairs(settings.unseen_filetypes) do
     if settings.linux_over_windows then
