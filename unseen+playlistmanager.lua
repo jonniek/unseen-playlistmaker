@@ -281,11 +281,11 @@ function playlist()
         local c= 0
         for dirx in popen:lines() do
             if cur == true then
-                mp.commandv("loadfile", path..dirx, "append")
+                mp.commandv("loadfile", fullpath..dirx, "append")
                 mp.msg.info("Appended to playlist: " .. dirx)
                 c = c + 1
             end
-            if dirx == file then
+            if dirx == filename then
                 cur = true
             end
         end
