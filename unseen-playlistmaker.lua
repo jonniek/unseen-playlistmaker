@@ -23,7 +23,7 @@ for w in pairs(settings.unseen_filetypes) do
         search = search..'"'..settings.unseen_searchpath..settings.unseen_filetypes[w]..'" '
     end
 end
-if linux_over_windows then
+if settings.linux_over_windows then
     scan = 'find'..search..'-type f -printf "%f\\n"'
 else
     scan = 'dir /b'..search 
