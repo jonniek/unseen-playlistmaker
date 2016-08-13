@@ -24,7 +24,7 @@ for w in pairs(settings.unseen_filetypes) do
     end
 end
 if settings.linux_over_windows then
-    scan = 'find'..search..'-type f -printf "%f\\n"'
+    scan = 'find'..search..'-type f -printf "%f\\n" 2>/dev/null'
 else
     scan = 'dir /b'..search 
 end
