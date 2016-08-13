@@ -56,12 +56,12 @@ function on_load(event)
     if dur then timecheck() else mark=true end
 
     if settings.loadfiles_filetypes == true then
-        search_playlist = fullpath..'*'
+        search_playlist = string.gsub(fullpath, "%s+", "\\ ")..'*'
     else
         search_playlist = ' '
         for w in pairs(settings.loadfiles_filetypes) do
             if settings.linux_over_windows then
-                search_playlist = search_playlist..fullpath..settings.loadfiles_filetypes[w]..' '
+                search_playlist = search_playlist..string.gsub(fullpath, "%s+", "\\ ")..settings.loadfiles_filetypes[w]..' '
             else
                 search_playlist = search_playlist..'"'..fullpath..settings.loadfiles_filetypes[w]..'" '
             end
