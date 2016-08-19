@@ -22,7 +22,8 @@ This script keeps track of your watched files locally, and on keybind enters pla
 2. Edit the filepaths in settings array.
 3. Run `mpv --idle` to create the list.txt file in the scriptloc path you chose.
 4. If the txt file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions.
-
+5. you can read some tips how to use my script in my [mpvconfig](https://github.com/donmaiq/mpvconfigs)
+  
 ####Files
 - unseen-playlistmaker.lua as described above
 - unseen+playlistmanager.lua as described above with playlistmanager integrated(see link below)
