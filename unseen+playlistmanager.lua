@@ -352,7 +352,7 @@ mp.register_event('end-file', on_close)
 mp.add_key_binding('w', 'mark-seen', watched)
 mp.add_key_binding('W', 'playlist-mode-toggle', activate)
 
-mp.add_key_binding('L', 'sortplaylist', sortplaylist)
+mp.add_key_binding('CTRL+p', 'sortplaylist', sortplaylist)
 mp.add_key_binding('P', 'loadfiles', playlist)
 mp.add_key_binding('p', 'saveplaylist', save_playlist)
 
