@@ -1,17 +1,21 @@
 local settings = {
-    linux_over_windows = false,                                 --linux=true, windows=false
+    linux_over_windows = true,                                 --linux=true, windows=false
 
     --playlist management settings
-    playlist_savepath = "X:\\code\\mpv\\",                      --notice trailing \ or /
+    playlist_savepath = "/custom/playlists/",                      --notice trailing \ or /
     playlist_osd_dur = 5,                                       --seconds playlist is shown when navigating                                   
     loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
-    sortplaylist_on_start = false,                              --sort playlist on mpv startup
-    
+    sortplaylist_on_start = false,
+    remove_old = true,              --remove old files to keep playlist readable, disabled during playlist mode
+    old_buffer = {14,8},            --first value size limit before removing, second one playlist position
+    old_loop = false,     --instead of removing, move them to end of playlist, creating a infinitely looping playlist 
+
+
     --unseen playlistmaker settings
     unseen_load_on_start = false,                                       --toggle to load unseen playlistmaker on startup, use only if loading script manually
     unseen_filetypes = {'*mkv','*mp4'},                                 --unseen-playlistmaker filetypes, {'*'} for all filetypes
-    unseen_searchpath = "D:\\users\\anon\\",                            --path to media files where unseen-playlistmaker should look for files 
-    unseen_savedpath="X:\\code\\mpv\\list.txt"                          --file and path to where to save seen shows 
+    unseen_searchpath = "/media/",                            --path to media files where unseen-playlistmaker should look for files 
+    unseen_savedpath="/custom/list"                         --file and path to where to save seen files 
 
 }
 
@@ -46,6 +50,19 @@ else
 end
 
 function on_load(event)
+    if settings.remove_old and not active then
+        if tonumber(mp.get_property('playlist-count')) > settings.old_buffer[1] and 
+           tonumber(mp.get_property('playlist-pos'))> settings.old_buffer[2] then
+                if settings.old_loop then
+                    local oldfile = mp.get_property('playlist/0/filename')
+                    mp.commandv("playlist-remove", 0) 
+                    mp.commandv("loadfile", oldfile, "append")
+                else
+                    mp.commandv("playlist-remove", 0)
+                end
+        end
+    end
+
     filename = mp.get_property('filename')
     path = mp.get_property('path')
     pos = mp.get_property('playlist-pos')
@@ -83,6 +100,7 @@ function on_close(event)
         end
         mp.commandv("loadfile", path, "append")
     end
+
     filename=nil
     idle=mp.get_property('idle')
     if idle == 'yes' and active then 
@@ -111,6 +129,7 @@ end
 --checks position of video every 5 seconds
 function timecheck()
     if mark == true or filename==nil then return end
+    if mp.get_property('percent-pos')==nil then mp.add_timeout(5, timecheck) return end
     local loc = tonumber(mp.get_property('percent-pos'))
     if not loc then return end
     --Change the equation below if you want to change at what point a file gets marked
@@ -273,7 +292,7 @@ function playlist()
     local popen=nil
     if settings.linux_over_windows then
         popen = io.popen('find '..search_playlist..' -type f -printf "%f\\n" 2>/dev/null') --linux version, not tested, if it doesn't work fix it to print filenames only 1 per row
-        --print('find '..search..' -type f -printf "%f\\n"')
+        --print('find '..search_playlist..' -type f -printf "%f\\n"')
     else
         popen = io.popen('dir /b '..search_playlist) --windows version
     end
@@ -311,7 +330,7 @@ function save_playlist()
             file:write(cursorfilename, "\n")
             x=x+1
         end
-        print("Playlist written to: "..filepath..savename)
+        print("Playlist written to: "..settings.playlist_savepath..savename)
         file:close()
     end
 end
