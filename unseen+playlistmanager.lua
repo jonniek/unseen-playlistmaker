@@ -327,7 +327,6 @@ function sortplaylist()
         table.sort(playlist)
         local first = true
         for index,file in pairs(playlist) do
-            print(file)
             if first then 
                 mp.commandv("loadfile", file, "replace")
                 first=false
