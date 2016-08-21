@@ -5,6 +5,7 @@ local settings = {
     playlist_savepath = "X:\\code\\mpv\\",                      --notice trailing \ or /
     playlist_osd_dur = 5,                                       --seconds playlist is shown when navigating                                   
     loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
+    sortplaylist_on_start = false,                              --sort playlist on mpv startup
     
     --unseen playlistmaker settings
     unseen_load_on_start = false,                                       --toggle to load unseen playlistmaker on startup, use only if loading script manually
@@ -316,23 +317,29 @@ function save_playlist()
 end
 
 function sortplaylist()
-	local length = tonumber(mp.get_property('playlist/count'))
+    local length = tonumber(mp.get_property('playlist/count'))
+    if length > 1 then
+        local playlist = {}
+        for i=0,length,1
+        do
+            playlist[i+1] = mp.get_property('playlist/'..i..'/filename')
+        end
+        table.sort(playlist)
+        local first = true
+        for index,file in pairs(playlist) do
+            print(file)
+            if first then 
+                mp.commandv("loadfile", file, "replace")
+                first=false
+            else
+                mp.commandv("loadfile", file, "append") 
+            end
+        end
+    end
+end
 
-	local playlist = {}
-	for i=0,length,1
-	do
-		playlist[i+1] = mp.get_property('playlist/'..i..'/filename')
-	end
-	table.sort(playlist)
-	local first = true
-	for index,file in pairs(playlist) do
-		if first then 
-			mp.commandv("loadfile", file, "replace")
-			first=false
-		else
-			mp.commandv("loadfile", file, "append") 
-		end
-	end
+if settings.sortplaylist_on_start then
+    mp.add_timeout(0.03, sortplaylist)
 end
 
 if settings.unseen_load_on_start then
