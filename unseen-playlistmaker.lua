@@ -105,7 +105,9 @@ end
 --checks position of video every 5 seconds
 function timecheck()
     if mark == true or filename==nil then return end
-    local loc = tonumber(mp.get_property('percent-pos'))
+    local tmppos = mp.get_property('percent-pos')
+    if tmppos==nil then mp.add_timeout(5, timecheck) return end
+    local loc = tonumber(tmppos)
     if not loc then return end
     --Change the equation below if you want to change at what point a file gets marked
     --0-100
