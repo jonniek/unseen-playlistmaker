@@ -228,12 +228,16 @@ function search(args)
     plen = tonumber(mp.get_property('playlist-count'))
 end
 
+function showplaylist()
+    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+end
+
 --removes the current file from playlist
 function removecurrentfile()
     mark=true
     mp.commandv("playlist-remove", "current")
     plen = tonumber(mp.get_property('playlist-count'))
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    mp.add_timeout(0.1, showplaylist)
 end
 
 --Removes the file below current file from playlist
@@ -241,7 +245,7 @@ end
 function removenextfile()
     mp.commandv("playlist-remove", pos+1)
     plen = tonumber(mp.get_property('playlist-count'))
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    showplaylist()
 end
 
 --Moves current file up in playlist order
@@ -251,7 +255,7 @@ function moveup()
     else
         mp.commandv("playlist-move", pos,plen)
     end
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    showplaylist()
     pos = mp.get_property('playlist-pos')
 end
 
@@ -262,7 +266,7 @@ function movedown()
     else
         mp.commandv("playlist-move", pos,0)
     end
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    showplaylist()
     pos = mp.get_property('playlist-pos')
 end
 --moves the previous file up, allowing seamless reordering
@@ -272,7 +276,7 @@ function moveprevup()
     else
         mp.commandv("playlist-move", pos-1,plen)
     end
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    showplaylist()
     pos = mp.get_property('playlist-pos')
 end
 
@@ -283,7 +287,7 @@ function movenextdown()
     else
         mp.commandv("playlist-move", pos+1,0)
     end
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+    showplaylist()
     pos = mp.get_property('playlist-pos')
 end
 
