@@ -222,7 +222,7 @@ function search(args)
         end
     end
     if count ~= 0 and args~='hide' then 
-        mp.osd_message("Added total of: "..count.." files to playlist")
+        mp.osd_message("Added a total of  "..count.." files to playlist")
     end
     popen:close()
     plen = tonumber(mp.get_property('playlist-count'))
