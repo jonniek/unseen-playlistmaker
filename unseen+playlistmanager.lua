@@ -4,23 +4,33 @@ local settings = {
     --playlist management settings
     playlist_savepath = "/custom/playlists/",                      --notice trailing \ or /
     playlist_osd_dur = 5,                                       --seconds playlist is shown when navigating                                   
-    loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
+    loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png','*avi','*mp3'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
     sortplaylist_on_start = false,
-    remove_old = true,              --remove old files to keep playlist readable, disabled during playlist mode
-    old_buffer = {14,8},            --first value size limit before removing, second one playlist position
-    old_loop = false,     --instead of removing, move them to end of playlist, creating a infinitely looping playlist 
+
+    --attempt to strip path from the playlist filename, usually only nececcary if opened with playlist file
+    --having it on true might have unwanted effects with files containing /
+    strip_paths = true,
+
+    --show playlist every time a new file is loaded
+    show_playlist_on_fileload = true,
+
+    --sync cursor when file is loaded from outside reasons(file-ending, playlist-next shortcut etc.)
+    --has the sideeffect of moving cursor if file happens to change when navigating
+    --good side is cursor always following current file when going back and forth files
+    --2 is true, always follow on load 
+    --1 is sticky, follow if cursor is close
+    --0 is false, never follow
+    sync_cursor_on_load = 2,
 
 
     --unseen playlistmaker settings
     unseen_load_on_start = false,                                       --toggle to load unseen playlistmaker on startup, use only if loading script manually
     unseen_filetypes = {'*mkv','*mp4'},                                 --unseen-playlistmaker filetypes, {'*'} for all filetypes
-    unseen_searchpath = "/media/",                            --path to media files where unseen-playlistmaker should look for files 
+    unseen_searchpath = "/media/HDD/users/anon/Downloads/temp/",                            --path to media files where unseen-playlistmaker should look for files 
     unseen_savedpath="/custom/list"                         --file and path to where to save seen files 
 
 }
 
-local mp=require 'mp'
-local os=require 'os'
 local seenarray={}
 local loadingarray={}
 local active = false
@@ -50,22 +60,9 @@ else
 end
 
 function on_load(event)
-    if settings.remove_old and not active then
-        if tonumber(mp.get_property('playlist-count')) > settings.old_buffer[1] and 
-           tonumber(mp.get_property('playlist-pos'))> settings.old_buffer[2] then
-                if settings.old_loop then
-                    local oldfile = mp.get_property('playlist/0/filename')
-                    mp.commandv("playlist-remove", 0) 
-                    mp.commandv("loadfile", oldfile, "append")
-                else
-                    mp.commandv("playlist-remove", 0)
-                end
-        end
-    end
-
     filename = mp.get_property('filename')
     path = mp.get_property('path')
-    pos = mp.get_property('playlist-pos')
+    pos = tonumber(mp.get_property('playlist-pos'))
     plen = tonumber(mp.get_property('playlist-count'))
     fullpath = string.sub(mp.get_property("path"), 1, string.len(mp.get_property("path"))-string.len(mp.get_property("filename")))
     mark=false
@@ -85,6 +82,16 @@ function on_load(event)
             end
         end
     end
+    if settings.sync_cursor_on_load==2 then
+        cursor=pos
+    elseif settings.sync_cursor_on_load==1 then
+        if cursor == pos -1 then 
+            cursor = cursor + 1 
+        elseif cursor==pos+1 then
+            cursor=cursor-1
+        end
+    end
+    if settings.show_playlist_on_fileload then showplaylist(true) end
 end
 
 
@@ -222,74 +229,126 @@ function search(args)
         end
     end
     if count ~= 0 and args~='hide' then 
-        mp.osd_message("Added a total of  "..count.." files to playlist")
+        mp.osd_message("Added total of "..count.." files to playlist")
     end
     popen:close()
     plen = tonumber(mp.get_property('playlist-count'))
 end
 
-function showplaylist()
-    mp.osd_message(mp.get_property_osd("playlist"), settings.playlist_osd_dur)
+------EMD OF UNSEEN
+--START OF MANAGER
+
+
+--if you need to strip filepaths from playlist names uncomment if statement below
+function strippath(pathfile)
+    if settings.strip_paths then
+        local tmp = string.match(pathfile, '.*/(.*)')
+        if tmp then return tmp end
+    end
+    return pathfile 
 end
 
---removes the current file from playlist
-function removecurrentfile()
-    mark=true
-    mp.commandv("playlist-remove", "current")
+
+cursor = 0
+function showplaylist(delay)
+    if delay then
+        mp.add_timeout(0.2,showplaylist)
+        return
+    end
+    if not mp.get_property('playlist-pos') or not mp.get_property('playlist-count') then return end
+    pos = tonumber(mp.get_property('playlist-pos'))
     plen = tonumber(mp.get_property('playlist-count'))
-    mp.add_timeout(0.1, showplaylist)
+    if cursor>plen then cursor=0 end
+    local playlist = {}
+    for i=0,plen-1,1
+    do
+        playlist[i] = strippath(mp.get_property('playlist/'..i..'/filename'))
+    end
+    if plen>1 then
+        output = "Playing: "..mp.get_property('media-title').."\n\n"
+        output = output.."Playlist - "..(cursor+1).." / "..plen.."\n"
+        local b = cursor - 5
+        if b > 0 then output=output.."...\n" end
+        if b<0 then b=0 end
+        for a=b,b+10,1 do
+            if a == plen then break end
+            if a == pos then output = output.."->" end
+            if a == cursor then
+                if tag then
+                    output = output..">> "..playlist[a].." <<\n"
+                else
+                    output = output.."> "..playlist[a].." <\n"
+                end
+            else
+                output = output..playlist[a].."\n"
+            end
+            if a == b+10 then
+              output=output.."..."
+            end
+        end
+    else
+        output = file
+    end
+    mp.osd_message(output, settings.osd_duration_seconds)
 end
 
---Removes the file below current file from playlist
---this makes it easy to navigate with moveup and movedown through playlist and delete files
-function removenextfile()
-    mp.commandv("playlist-remove", pos+1)
-    plen = tonumber(mp.get_property('playlist-count'))
+tag=nil
+function tagcurrent()
+    if not tag then
+        tag=cursor
+    else
+        tag=nil
+    end
     showplaylist()
 end
 
---Moves current file up in playlist order
+function removefile()
+    if cursor==pos then mark=true end
+    mp.commandv("playlist-remove", cursor)
+    if cursor==plen-1 then cursor = cursor - 1 end
+    showplaylist()
+end
+
 function moveup()
-    if pos-1~=-1 then
-        mp.commandv("playlist-move", pos,pos-1)
+    if cursor~=0 then
+        if tag then mp.commandv("playlist-move", cursor,cursor-1) end
+        cursor = cursor-1
     else
-        mp.commandv("playlist-move", pos,plen)
+        if tag then mp.commandv("playlist-move", cursor,plen) end
+        cursor = plen-1
     end
     showplaylist()
-    pos = mp.get_property('playlist-pos')
 end
 
---Moves current file down in playlist order
 function movedown()
-    if pos+1<plen then
-        mp.commandv("playlist-move", pos,pos+2)
+    if cursor ~= plen-1 then
+        if tag then mp.commandv("playlist-move", cursor,cursor+2) end
+        cursor = cursor + 1
     else
-        mp.commandv("playlist-move", pos,0)
+        if tag then mp.commandv("playlist-move", cursor,0) end
+        cursor = 0
     end
     showplaylist()
-    pos = mp.get_property('playlist-pos')
-end
---moves the previous file up, allowing seamless reordering
-function moveprevup()
-    if pos-2~=-1 then
-        mp.commandv("playlist-move", pos-1,pos-2)
-    else
-        mp.commandv("playlist-move", pos-1,plen)
-    end
-    showplaylist()
-    pos = mp.get_property('playlist-pos')
 end
 
---moves the next file down, allowing seamless reordering
-function movenextdown()
-    if pos+2<plen then
-        mp.commandv("playlist-move", pos+1,pos+3)
+function jumptofile()
+    if cursor < pos then
+        for x=1,math.abs(cursor-pos),1 do
+            mp.commandv("playlist-prev", "weak")
+        end
+    elseif cursor>pos then
+        for x=1,math.abs(cursor-pos),1 do
+            mp.commandv("playlist-next", "weak")
+        end
     else
-        mp.commandv("playlist-move", pos+1,0)
+        if cursor~=plen-1 then
+            cursor = cursor + 1
+        end
+        mp.commandv("playlist-next", "weak")
     end
-    showplaylist()
-    pos = mp.get_property('playlist-pos')
+    showplaylist(true)
 end
+
 
 --Attempts to add all files following the currently playing one to the playlist
 --For exaple, Folder has 12 files, you open the 5th file and run this, the remaining 7 are added behind the 5th file
@@ -351,6 +410,7 @@ function sortplaylist()
         table.sort(playlist)
         local first = true
         for index,file in pairs(playlist) do
+            print(file)
             if first then 
                 mp.commandv("loadfile", file, "replace")
                 first=false
@@ -380,9 +440,9 @@ mp.add_key_binding('CTRL+p', 'sortplaylist', sortplaylist)
 mp.add_key_binding('P', 'loadfiles', playlist)
 mp.add_key_binding('p', 'saveplaylist', save_playlist)
 
+mp.add_key_binding('Shift+ENTER', 'showplaylist', showplaylist)
 mp.add_key_binding('UP', 'moveup', moveup)
 mp.add_key_binding('DOWN', 'movedown', movedown)
-mp.add_key_binding('CTRL+UP', 'moveprevup', moveprevup)
-mp.add_key_binding('CTRL+DOWN', 'movenextdown', movenextdown)
-mp.add_key_binding('Shift+UP', 'removecurrentfile', removecurrentfile)
-mp.add_key_binding('Shift+DOWN', 'removenextfile', removenextfile)
+mp.add_key_binding('CTRL+UP', 'tagcurrent', tagcurrent)
+mp.add_key_binding('ENTER', 'jumptofile', jumptofile)
+mp.add_key_binding('BS', 'removefile', removefile)
