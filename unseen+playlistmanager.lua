@@ -303,6 +303,7 @@ function tagcurrent()
 end
 
 function removefile()
+    tag = nil
     if cursor==pos then mark=true end
     mp.commandv("playlist-remove", cursor)
     if cursor==plen-1 then cursor = cursor - 1 end
@@ -332,6 +333,7 @@ function movedown()
 end
 
 function jumptofile()
+    tag = nil
     if cursor < pos then
         for x=1,math.abs(cursor-pos),1 do
             mp.commandv("playlist-prev", "weak")
