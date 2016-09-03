@@ -289,7 +289,7 @@ function showplaylist(delay)
     else
         output = file
     end
-    mp.osd_message(output, settings.osd_duration_seconds)
+    mp.osd_message(output, settings.playlist_osd_dur)
 end
 
 tag=nil
