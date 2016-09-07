@@ -76,7 +76,7 @@ function on_load(event)
         search_playlist = ' '
         for w in pairs(settings.loadfiles_filetypes) do
             if settings.linux_over_windows then
-                search_playlist = search_playlist..string.gsub(fullpath, "%s+", "\\ ")..settings.loadfiles_filetypes[w]..' '
+                search_playlist = search_playlist..fullpath:gsub("%s+", "\\ "):gsub("%[","\\["):gsub("%]","\\]")..settings.loadfiles_filetypes[w]..' '
             else
                 search_playlist = search_playlist..'"'..fullpath..settings.loadfiles_filetypes[w]..'" '
             end
