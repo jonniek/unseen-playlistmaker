@@ -109,7 +109,7 @@ function on_close(event)
     end
 
     filename=nil
-    idle=mp.get_property('idle')
+    idle=mp.get_property('idle-active')
     if idle == 'yes' and active then 
        idle_timer('closed')
     end
@@ -125,7 +125,7 @@ function idle_timer(arg)
     elseif arg == 'active' or arg == 'closed' then
         idleact = true
     end
-    idle=mp.get_property('idle')
+    idle=mp.get_property('idle-active')
     if idle ~= 'yes' or idleact == false then return end
     search()
     --change below how often you want to listen for new files when idle
@@ -187,13 +187,13 @@ end
 --Toggles playlist mode to listen for new files and calls an initial search for files
 function activate(args)
     if active==false then
-        if mp.get_property('idle')=='yes' then idle_timer('active') end
+        if mp.get_property('idle-active')=='yes' then idle_timer('active') end
         mp.msg.info("Activating playlist mode, listening for unseen files.")
         mp.register_event('file-loaded', search)
         active = true
         search()
     else
-        if mp.get_property('idle')=='yes' then idle_timer('deactive') end
+        if mp.get_property('idle-active')=='yes' then idle_timer('deactive') end
         mp.unregister_event('file-loaded', search)
         mp.msg.info("Disabling playlist mode.")
         active = false
