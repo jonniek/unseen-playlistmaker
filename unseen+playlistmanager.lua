@@ -7,6 +7,9 @@ local settings = {
     loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png','*avi','*mp3'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
     sortplaylist_on_start = false,
 
+    --amount of entries to show before concatenating list
+    showamount = 13,
+
     --attempt to strip path from the playlist filename, usually only nececcary if opened with playlist file
     --having it on true might have unwanted effects with files containing /
     strip_paths = true,
@@ -264,13 +267,18 @@ function showplaylist(delay)
     do
         playlist[i] = strippath(mp.get_property('playlist/'..i..'/filename'))
     end
-    if plen>1 then
+    if plen>0 then
         output = "Playing: "..mp.get_property('media-title').."\n\n"
         output = output.."Playlist - "..(cursor+1).." / "..plen.."\n"
-        local b = cursor - 5
-        if b > 0 then output=output.."...\n" end
+        local b = cursor - math.floor(settings.showamount/2)
+        local showall = false
         if b<0 then b=0 end
-        for a=b,b+10,1 do
+        if plen <= settings.showamount then
+        	b=0
+        	showall=true
+        end
+        if b > 0 and not showall then output=output.."...\n" end
+        for a=b,b+settings.showamount-1,1 do
             if a == plen then break end
             if a == pos then output = output.."->" end
             if a == cursor then
@@ -282,7 +290,7 @@ function showplaylist(delay)
             else
                 output = output..playlist[a].."\n"
             end
-            if a == b+10 then
+            if a == b+settings.showamount-1 and not showall then
               output=output.."..."
             end
         end
