@@ -14,8 +14,16 @@ local settings = {
     --having it on true might have unwanted effects with files containing /
     strip_paths = true,
 
+    --replace matches on filenames, default ones remove square brackets and their wrapping spaces
+    --will only apply if strip_paths is true
+    --format: {['string to match'] = 'value to replace as', ...} - replaces will be done in random order
+    --put as false or empty to not replace anything
+    strip_replace = {['%s*%[.-%]%s*']=''},
+
     --show playlist every time a new file is loaded
-    show_playlist_on_fileload = true,
+    --will try to override any osd-playing-msg conf, may cause flickering if a osd-playing-msg exists.
+    --2 shows playlist, 1 shows current file(filename strip above applied), 0 shows nothing
+    show_playlist_on_fileload = 1,
 
     --sync cursor when file is loaded from outside reasons(file-ending, playlist-next shortcut etc.)
     --has the sideeffect of moving cursor if file happens to change when navigating
@@ -94,7 +102,11 @@ function on_load(event)
             cursor=cursor-1
         end
     end
-    if settings.show_playlist_on_fileload then showplaylist(true) end
+    if settings.show_playlist_on_fileload == 2 then
+        showplaylist(true)
+    elseif settings.show_playlist_on_fileload == 1 then
+        mp.commandv('show-text', strippath(mp.get_property('media-title')), 2000)
+    end
 end
 
 
@@ -242,15 +254,21 @@ end
 --START OF MANAGER
 
 
---if you need to strip filepaths from playlist names uncomment if statement below
 function strippath(pathfile)
-    if settings.strip_paths then
-        local tmp = string.match(pathfile, '.*/(.*)')
-        if tmp then return tmp end
+  if settings.strip_paths then
+    local tmp = string.match(pathfile, '.*/(.*)')
+    if not tmp then
+        tmp = pathfile
     end
-    return pathfile 
+    if settings.strip_replace then
+        for k,v in pairs(settings.strip_replace) do
+            tmp = tmp:gsub(k, v)
+        end
+    end
+    return tmp
+  end
+  return pathfile
 end
-
 
 cursor = 0
 function showplaylist(delay)
