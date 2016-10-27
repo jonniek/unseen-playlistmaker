@@ -10,20 +10,27 @@ local settings = {
     --amount of entries to show before concatenating list
     showamount = 13,
 
-    --attempt to strip path from the playlist filename, usually only nececcary if opened with playlist file
-    --having it on true might have unwanted effects with files containing /
-    strip_paths = true,
-
-    --replace matches on filenames, default ones remove square brackets and their wrapping spaces
-    --will only apply if strip_paths is true
+    --replace matches on filenames
     --format: {['string to match'] = 'value to replace as', ...} - replaces will be done in random order
-    --put as false or empty to not replace anything
-    strip_replace = {['%s*%[.-%]%s*']=''},
+    --put as false to not replace anything
+    filename_replace = {
+        ['^.*/']='',                    --strip paths from file, all before and last / removed
+        ['%s*[%[%(].-[%]%)]%s*']='',    --remove brackets, their content and surrounding white space
+        ['_']=' ',                      --change underscore to space
+        --['%..*$']='',                    --remove extension
+    },
+
+    --set title of window with stripped name and suffix
+    set_title_stripped = true,
+    title_suffix = " - mpv",
 
     --show playlist every time a new file is loaded
     --will try to override any osd-playing-msg conf, may cause flickering if a osd-playing-msg exists.
     --2 shows playlist, 1 shows current file(filename strip above applied), 0 shows nothing
     show_playlist_on_fileload = 1,
+
+    --show playlist when selecting file within manager (ENTER)
+    show_playlist_on_select = false,
 
     --sync cursor when file is loaded from outside reasons(file-ending, playlist-next shortcut etc.)
     --has the sideeffect of moving cursor if file happens to change when navigating
@@ -32,7 +39,6 @@ local settings = {
     --1 is sticky, follow if cursor is close
     --0 is false, never follow
     sync_cursor_on_load = 2,
-
 
     --unseen playlistmaker settings
     unseen_load_on_start = false,                                       --toggle to load unseen playlistmaker on startup, use only if loading script manually
@@ -102,10 +108,14 @@ function on_load(event)
             cursor=cursor-1
         end
     end
+    local stripped = strippath(mp.get_property('media-title'))
     if settings.show_playlist_on_fileload == 2 then
         showplaylist(true)
     elseif settings.show_playlist_on_fileload == 1 then
-        mp.commandv('show-text', strippath(mp.get_property('media-title')), 2000)
+        mp.commandv('show-text', stripped, 2000)
+    end
+    if settings.set_title_stripped then 
+        mp.set_property_native("title", stripped..settings.title_suffix)
     end
 end
 
@@ -253,21 +263,14 @@ end
 ------EMD OF UNSEEN
 --START OF MANAGER
 
-
 function strippath(pathfile)
-  if settings.strip_paths then
-    local tmp = string.match(pathfile, '.*/(.*)')
-    if not tmp then
-        tmp = pathfile
-    end
-    if settings.strip_replace then
-        for k,v in pairs(settings.strip_replace) do
+    local tmp = pathfile
+    if settings.filename_replace then
+        for k,v in pairs(settings.filename_replace) do
             tmp = tmp:gsub(k, v)
         end
     end
     return tmp
-  end
-  return pathfile
 end
 
 cursor = 0
@@ -286,14 +289,19 @@ function showplaylist(delay)
         playlist[i] = strippath(mp.get_property('playlist/'..i..'/filename'))
     end
     if plen>0 then
-        output = "Playing: "..mp.get_property('media-title').."\n\n"
+        output = "Playing: "..strippath(mp.get_property('media-title')).."\n\n"
         output = output.."Playlist - "..(cursor+1).." / "..plen.."\n"
         local b = cursor - math.floor(settings.showamount/2)
         local showall = false
+        local showrest = false
         if b<0 then b=0 end
         if plen <= settings.showamount then
         	b=0
         	showall=true
+        end
+        if b > math.max(plen-settings.showamount-1, 0) then 
+        	b=plen-settings.showamount
+        	showrest=true
         end
         if b > 0 and not showall then output=output.."...\n" end
         for a=b,b+settings.showamount-1,1 do
@@ -308,7 +316,7 @@ function showplaylist(delay)
             else
                 output = output..playlist[a].."\n"
             end
-            if a == b+settings.showamount-1 and not showall then
+            if a == b+settings.showamount-1 and not showall and not showrest then
               output=output.."..."
             end
         end
@@ -374,7 +382,9 @@ function jumptofile()
         end
         mp.commandv("playlist-next", "weak")
     end
-    showplaylist(true)
+    if settings.show_playlist_on_select then
+        showplaylist(true)
+    end
 end
 
 
