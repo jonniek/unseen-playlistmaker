@@ -1,12 +1,15 @@
 local settings = {
-    linux_over_windows = false,                --linux=true, windows=false
+    --linux=true, windows=false
+    linux_over_windows = false,
 
-    --unseen playlistmaker settings
-    unseen_load_on_start = false,              --toggle to load unseen playlistmaker on startup, use only if loading script manually
-    unseen_filetypes = {'*mkv','*mp4'},        --unseen-playlistmaker filetypes, {'*'} for all filetypes
-    unseen_searchpath = "D:\\downloads",       --path to media files where unseen-playlistmaker should look for files 
-    unseen_savedpath="X:\\code\\mpv\\list.txt" --file and path to where to save seen shows 
-
+    --toggle to load unseen playlistmaker on startup, use only if loading script manually
+    unseen_load_on_start = false,              
+    --unseen-playlistmaker filetypes, {'*'} for all filetypes
+    unseen_filetypes = {'*mkv','*mp4'},        
+    --path to media files where unseen-playlistmaker should look for files 
+    unseen_searchpath = "/media/HDD/users/anon/Downloads/temp/",
+    --file and path to where to save seen shows, probably good to change away from tmp
+    unseen_savedpath="/tmp/unseenList",
 }
 
 local mp=require 'mp'
