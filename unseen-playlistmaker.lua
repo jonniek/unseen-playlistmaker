@@ -49,10 +49,9 @@ function on_load(event)
     plen = tonumber(mp.get_property('playlist-count'))
     fullpath = string.sub(mp.get_property("path"), 1, string.len(mp.get_property("path"))-string.len(mp.get_property("filename")))
     mark=false
-
-    --listen only for files in our media folder that have a duration
+    
     local dur = mp.get_property('duration')
-    if dur and fullpath == settings.unseen_searchpath then timecheck() else mark=true end
+    if dur then timecheck() else mark=true end
 end
 
 
