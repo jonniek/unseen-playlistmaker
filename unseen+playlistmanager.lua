@@ -83,9 +83,10 @@ function on_load(event)
     plen = tonumber(mp.get_property('playlist-count'))
     fullpath = string.sub(mp.get_property("path"), 1, string.len(mp.get_property("path"))-string.len(mp.get_property("filename")))
     mark=false
-    --check if file has duration. If it has one, start listening for progress. Streams are skipped this way.
+
+    --listen only for files in our media folder that have a duration
     local dur = mp.get_property('duration')
-    if dur then timecheck() else mark=true end
+    if dur and fullpath == settings.unseen_searchpath then timecheck() else mark=true end
 
     if settings.loadfiles_filetypes == true then
         search_playlist = string.gsub(fullpath, "%s+", "\\ ")..'*'
