@@ -1,7 +1,7 @@
 
 #MPV unseen-playlistmaker
 -----------
-This script keeps track of your watched files locally, and on keybind enters playlist-mode to watch unseen files.
+This script keeps track of your watched files locally, and on keybind enters playlist-mode to watch unseen files from a particular directory.
   
 ####Default features:
 * Marks file as seen into a file when surpassing 80% duration.
