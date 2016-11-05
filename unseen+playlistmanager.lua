@@ -84,9 +84,8 @@ function on_load(event)
     fullpath = string.sub(mp.get_property("path"), 1, string.len(mp.get_property("path"))-string.len(mp.get_property("filename")))
     mark=false
 
-    --listen only for files in our media folder that have a duration
     local dur = mp.get_property('duration')
-    if dur and fullpath == settings.unseen_searchpath then timecheck() else mark=true end
+    if dur then timecheck() else mark=true end
 
     if settings.loadfiles_filetypes == true then
         search_playlist = string.gsub(fullpath, "%s+", "\\ ")..'*'
