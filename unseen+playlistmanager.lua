@@ -1,7 +1,7 @@
 local settings = {
 	linux_over_windows = true,                                 --linux=true, windows=false
 
-	--playlist management settings
+	--### playlist management settings ###
 	playlist_savepath = "/custom/playlists/",                      --notice trailing \ or /
 	playlist_osd_dur = 5,                                       --seconds playlist is shown when navigating                                   
 	loadfiles_filetypes = {'*mkv','*mp4','*jpg','*gif','*png','*avi','*mp3','*flac'}, --shortcut P filetypes that will be loaded, true if all filetypes, else array like {'*mkv','*mp4'}
