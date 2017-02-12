@@ -28,7 +28,4 @@ This script keeps track of your watched files locally, and on keybind enters pla
 - unseen+playlistmanager.lua as described above with playlistmanager integrated(see link below)
 
 #### My other mpv scripts
-- [nextfile](https://github.com/donmaiq/mpv-nextfile)
-- [filenavigator](https://github.com/donmaiq/mpv-filenavigator)
-- [playlistmanager](https://github.com/donmaiq/Mpv-Playlistmanager) only, combined one [unseen+playlistmanager.lua ](https://github.com/donmaiq/unseen-playlistmaker/blob/master/unseen%2Bplaylistmanager.lua)in this repo
-
+- [collection of scripts](https://github.com/donmaiq/mpv-scripts)
