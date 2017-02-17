@@ -2,15 +2,17 @@ local settings = {
   --linux=true, windows=false, nil=auto
   linux_over_windows = nil,
 
+  --when playlist-mode is active append skipped files to end of playlist
+  append_skipped = true,
   --toggle to load unseen playlistmaker on startup, use only if loading script manually
-  unseen_load_on_start = false,
+  load_on_start = false,
   --unseen-playlistmaker filetypes {'ext','ext2'}, use empty string {''} for all filetypes
-  unseen_filetypes = {'mkv', 'mp4'},
+  allowed_extensions = {'mkv', 'mp4'},
   --absolute path to media directory where unseen-playlistmaker should look for files. Do not use aliases like $HOME.
   --notice trailing slashes, escape backslashes on windows like c:\\dir\\
-  unseen_searchpath = "/home/anon/Videos/",
+  unseen_directory = "/home/anon/Videos/",
   --full path and name of file that contains seen files
-  unseen_savedpath="/tmp/unseenlist",
+  seenlist_file = "/tmp/unseenlist",
 }
 
 local utils = require 'mp.utils'
@@ -54,13 +56,14 @@ function create_searchquery(path, extensions, unix)
 end
 
 --initialize unseen scan query once
-local scan = create_searchquery(settings.unseen_searchpath, settings.unseen_filetypes, settings.linux_over_windows)
+local scan = create_searchquery(settings.unseen_directory, settings.allowed_extensions, settings.linux_over_windows)
+print(scan)
 
 --creating/checking seen list file on startup
-local test, err = io.open(settings.unseen_savedpath, "r")
+local test, err = io.open(settings.seenlist_file, "r")
 if not test then
   msg.info(err.." => creating seen list file")
-  local create, err = io.open(settings.unseen_savedpath, "w")
+  local create, err = io.open(settings.seenlist_file, "w")
   if not create then
     msg.error("Failed to create seen list, check permissions or create manually. Error: "..err or "") 
   else 
@@ -74,22 +77,18 @@ end
 function on_load()
   filename = mp.get_property('filename')
   path = utils.join_path(mp.get_property('working-directory'), mp.get_property('path'))
-  --hack the windows path because utils use / only
-  if not settings.linux_over_windows then
-    path = path:gsub("/", "\\")
-  end
   pos = mp.get_property_number('playlist-pos', 0)
   plen = mp.get_property_number('playlist-count', 0)
   directory = utils.split_path(path)
   mark=false
 
   --only track files that are in our searchdirectory
-  if directory == settings.unseen_searchpath then unseentimer:resume() else mark=true end
+  if directory == settings.unseen_directory then unseentimer:resume() else mark=true end
 end
 
 function on_close()
   --if playlist-mode is active, unwatched files are appended to end of playlist
-  if not mark and active and path then
+  if not mark and active and path and settings.append_skipped then
     for i=0, plen, 1 do
       if path == mp.get_property('playlist/'..i..'/filename') then
         mp.commandv("playlist-remove", i)
@@ -138,7 +137,7 @@ function watched(args)
     if args~='timer' then msg.warn("File already marked as watched: "..filename) end
     return
   end
-  local file, err = io.open(settings.unseen_savedpath, "a+")
+  local file, err = io.open(settings.seenlist_file, "a+")
   if not file then
     msg.error("Error opening seen list in watched() : "..err or "")
   else
@@ -178,7 +177,7 @@ end
 --appends unseen episodes into playlist
 --if a new file is added to the folder, it will be appended on next search
 function search(args)
-  local seenlist, err = io.open(settings.unseen_savedpath, "r")
+  local seenlist, err = io.open(settings.seenlist_file, "r")
   if not seenlist then msg.error("Cannot read seen list: "..err or "") return end
   local seen = seenlist:read("*l")
   while seen ~= nil do
@@ -191,14 +190,15 @@ function search(args)
   local count = 0
   local popen = io.popen(scan)
   for line in popen:lines() do
+    print(utils.join_path(settings.unseen_directory, line))
     if not seenarray[line] and line:sub(-1)~="/" then
       --checking that file is readable
-      local errcheck, err = io.open(utils.join_path(settings.unseen_searchpath, line), "r") 
+      local errcheck, err = io.open(utils.join_path(settings.unseen_directory, line), "r") 
       if errcheck then
         errcheck:close()
         seenarray[line]='true'
         count = count + 1
-        mp.commandv("loadfile", settings.unseen_searchpath..line, "append-play")
+        mp.commandv("loadfile", utils.join_path(settings.unseen_directory, line), "append-play")
         msg.info("Loaded: "..line)
       end
     end
@@ -216,7 +216,7 @@ unseentimer:kill()
 idletimer = mp.add_periodic_timer(5, idle_timer)
 idletimer:kill()
 
-if settings.unseen_load_on_start then
+if settings.load_on_start then
     activate()
 end
 
