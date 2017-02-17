@@ -5,8 +5,9 @@ local settings = {
   --toggle to load unseen playlistmaker on startup, use only if loading script manually
   unseen_load_on_start = false,
   --unseen-playlistmaker filetypes {'ext','ext2'}, use empty string {''} for all filetypes
-  unseen_filetypes = {'mkv', 'mp4', 'jpg'},
+  unseen_filetypes = {'mkv', 'mp4'},
   --absolute path to media directory where unseen-playlistmaker should look for files. Do not use aliases like $HOME.
+  --notice trailing slashes, escape backslashes on windows like c:\\dir\\
   unseen_searchpath = "/home/anon/Videos/",
   --full path and name of file that contains seen files
   unseen_savedpath="/tmp/unseenlist",
@@ -25,7 +26,7 @@ function escapepath(dir, escapechar)
 end
 
 --check os
-if not settings.linux_over_windows then
+if settings.linux_over_windows==nil then
   local o = {}
   if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
     settings.linux_over_windows = false
@@ -73,6 +74,10 @@ end
 function on_load()
   filename = mp.get_property('filename')
   path = utils.join_path(mp.get_property('working-directory'), mp.get_property('path'))
+  --hack the windows path because utils use / only
+  if not settings.linux_over_windows then
+    path = path:gsub("/", "\\")
+  end
   pos = mp.get_property_number('playlist-pos', 0)
   plen = mp.get_property_number('playlist-count', 0)
   directory = utils.split_path(path)
