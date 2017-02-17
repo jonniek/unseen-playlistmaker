@@ -57,7 +57,6 @@ end
 
 --initialize unseen scan query once
 local scan = create_searchquery(settings.unseen_directory, settings.allowed_extensions, settings.linux_over_windows)
-print(scan)
 
 --creating/checking seen list file on startup
 local test, err = io.open(settings.seenlist_file, "r")
@@ -190,7 +189,6 @@ function search(args)
   local count = 0
   local popen = io.popen(scan)
   for line in popen:lines() do
-    print(utils.join_path(settings.unseen_directory, line))
     if not seenarray[line] and line:sub(-1)~="/" then
       --checking that file is readable
       local errcheck, err = io.open(utils.join_path(settings.unseen_directory, line), "r") 
