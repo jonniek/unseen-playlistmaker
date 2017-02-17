@@ -158,12 +158,12 @@ end
 
 --Toggles playlist mode to listen for new files and calls an initial search for files
 function activate(force)
-  if not active then
+  if ( not active or force == true ) and force ~= false then
     if mp.get_property('idle-active', 'no') == 'yes' then idletimer:resume() end
       msg.info("Activating playlist mode, listening for unseen files.")
       active = true
       search()
-  else
+  elseif active or force == false then
     if mp.get_property('idle-active', 'no') == 'yes' then idletimer:kill() end
     msg.info("Playlist mode disabled")
     active = false
@@ -217,14 +217,15 @@ end
 
 --react to script messages
 function unseenmsg(msg, value)
-  --allows other scripts to set mark to avoid conflicts
-  if msg == "mark" then mark = value=="true" end
+  --allows other scripts to mark file to avoid conflicts
+  if msg == "mark" then mark = value=="true" ; return end
+  if msg == "search" then search(value) ; return end
+  if msg == "activate" and value=="true" then activate(true) ; return end
+  if msg == "activate" and value=="false" then activate(false) ; return end
+  if msg == "activate" and value==nil then activate() ; return end
+  if msg == "mark-seen" then watched() ; return end
+
 end
 mp.register_script_message("unseenplaylist", unseenmsg)
-
 mp.register_event('file-loaded', on_load)
 mp.register_event('end-file', on_close)
-
---change the lines below if you want to change keybindings
-mp.add_key_binding('w', 'mark-seen', watched)
-mp.add_key_binding('W', 'playlist-mode-toggle', activate)
