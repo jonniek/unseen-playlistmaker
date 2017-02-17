@@ -1,202 +1,226 @@
 local settings = {
-    --linux=true, windows=false
-    linux_over_windows = false,
+  --linux=true, windows=false, nil=auto
+  linux_over_windows = nil,
 
-    --toggle to load unseen playlistmaker on startup, use only if loading script manually
-    unseen_load_on_start = false,              
-    --unseen-playlistmaker filetypes, {'*'} for all filetypes
-    unseen_filetypes = {'*mkv','*mp4'},        
-    --path to media files where unseen-playlistmaker should look for files 
-    unseen_searchpath = "/media/HDD/users/anon/Downloads/temp/",
-    --file and path to where to save seen shows, probably good to change away from tmp
-    unseen_savedpath="/tmp/unseenList",
+  --toggle to load unseen playlistmaker on startup, use only if loading script manually
+  unseen_load_on_start = false,
+  --unseen-playlistmaker filetypes {'ext','ext2'}, use empty string {''} for all filetypes
+  unseen_filetypes = {'mkv', 'mp4', 'jpg'},
+  --absolute path to media directory where unseen-playlistmaker should look for files. Do not use aliases like $HOME.
+  unseen_searchpath = "/home/anon/Videos/",
+  --full path and name of file that contains seen files
+  unseen_savedpath="/tmp/unseenlist",
 }
 
-local mp=require 'mp'
-local os=require 'os'
-local seenarray={}
-local loadingarray={}
+local utils = require 'mp.utils'
+local msg = require 'mp.msg'
+
+local seenarray = {}
+local loadingarray = {}
 local active = false
-local idle = nil
-local search =' '
-for w in pairs(settings.unseen_filetypes) do
-    if settings.linux_over_windows then
-        search = search..settings.unseen_searchpath..settings.unseen_filetypes[w]..' '
+local mark = false
+
+function escapepath(dir, escapechar)
+  return string.gsub(dir, escapechar, '\\'..escapechar)
+end
+
+--check os
+if not settings.linux_over_windows then
+  local o = {}
+  if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
+    settings.linux_over_windows = false
+  else
+    settings.linux_over_windows = true
+  end
+end
+
+--create file search query with path to search files, extensions in a table, unix as true(windows false)
+function create_searchquery(path, extensions, unix)
+  local query = ' '
+  for i in pairs(extensions) do
+    if unix then
+      if extensions[i] ~= "" then extensions[i] = "*"..extensions[i] end
+      query = query..extensions[i]..' '
     else
-        search = search..'"'..settings.unseen_searchpath..settings.unseen_filetypes[w]..'" '
+      query = query..'"'..path..'*'..extensions[i]..'" '
     end
-end
-if settings.linux_over_windows then
-    scan = 'find'..search..'-type f -printf "%f\\n" 2>/dev/null'
-else
-    scan = 'dir /b'..search 
+  end
+  if unix then
+    return 'cd "'..escapepath(path, '"')..'";ls -1vp'..query..'2>/dev/null'
+  else
+    return 'dir /b'..query
+  end
 end
 
---creating a list.txt file if one doesn't exist
-local test, err= io.open(settings.unseen_savedpath, "r")
+--initialize unseen scan query once
+local scan = create_searchquery(settings.unseen_searchpath, settings.unseen_filetypes, settings.linux_over_windows)
+
+--creating/checking seen list file on startup
+local test, err = io.open(settings.unseen_savedpath, "r")
 if not test then
-    mp.msg.info("creating list.txt file")
-    local create = io.open(settings.unseen_savedpath, "w")
-    if not create then mp.msg.info("Failed to create list.txt file, check permissions to path") else create:close() end
-else 
-    test:close() 
+  msg.info(err.." => creating seen list file")
+  local create, err = io.open(settings.unseen_savedpath, "w")
+  if not create then
+    msg.error("Failed to create seen list, check permissions or create manually. Error: "..err or "") 
+  else 
+    msg.info("File created without problems! The script is ready now.")
+    create:close() 
+  end
+else
+  test:close()
 end
 
-function on_load(event)
-    filename = mp.get_property('filename')
-    path = mp.get_property('path')
-    pos = mp.get_property('playlist-pos')
-    plen = tonumber(mp.get_property('playlist-count'))
-    fullpath = string.sub(mp.get_property("path"), 1, string.len(mp.get_property("path"))-string.len(mp.get_property("filename")))
-    mark=false
-    
-    local dur = mp.get_property('duration')
-    if dur then timecheck() else mark=true end
+function on_load()
+  filename = mp.get_property('filename')
+  path = utils.join_path(mp.get_property('working-directory'), mp.get_property('path'))
+  pos = mp.get_property_number('playlist-pos', 0)
+  plen = mp.get_property_number('playlist-count', 0)
+  directory = utils.split_path(path)
+  mark=false
+
+  --only track files that are in our searchdirectory
+  if directory == settings.unseen_searchpath then unseentimer:resume() else mark=true end
 end
 
+function on_close()
+  --if playlist-mode is active, unwatched files are appended to end of playlist
+  if not mark and active and path then
+    for i=0, plen, 1 do
+      if path == mp.get_property('playlist/'..i..'/filename') then
+        mp.commandv("playlist-remove", i)
+        break
+      end
+    end
+    mp.commandv("loadfile", path, "append")
+  end
 
-function on_close(event)
-    --if playlist-mode is active, unwatched files are appended to end of playlist
-    if mark == false and active and path then
-        local oldfile = mp.get_property('playlist/'..(mp.get_property('playlist-pos')-1)..'/filename')
-        local oldfile2 = mp.get_property('playlist/'..(mp.get_property('playlist-pos')+1)..'/filename')
-        if path==oldfile then 
-            mp.commandv("playlist-remove", mp.get_property('playlist-pos')-1) 
-        elseif path==oldfile2 then 
-            mp.commandv("playlist-remove", mp.get_property('playlist-pos')+1) 
-        end
-        mp.commandv("loadfile", path, "append")
-    end
-    filename=nil
-    idle=mp.get_property('idle-active')
-    if idle == 'yes' and active then 
-       idle_timer('closed')
-    end
+  if mp.get_property('idle-active', 'no') == 'yes' and active then 
+    msg.info("Entering idle mode and listening for new files.")
+  idletimer:resume()
+  end
 end
 
 --this checks for new files while player is in idle and playlist mode is active
-function idle_timer(arg)
-    if arg == 'closed' then
-        mp.msg.info("Entering idle mode and listening for new files.")
-    end
-    if arg == 'deactive' then 
-        idleact = false
-    elseif arg == 'active' or arg == 'closed' then
-        idleact = true
-    end
-    idle=mp.get_property('idle-active')
-    if idle ~= 'yes' or idleact == false then return end
-    search()
-    --change below how often you want to listen for new files when idle
-    mp.add_timeout(5, idle_timer)
-    
+function idle_timer()
+  if mp.get_property('idle-active', 'no') ~= 'yes' and active then
+    idletimer:kill()
+    return
+  end
+  search()
 end
 
---checks position of video every 5 seconds
+--checks position of video and marks as watched
 function timecheck()
-    if mark == true or filename==nil then return end
-    local tmppos = mp.get_property('percent-pos')
-    if tmppos==nil then mp.add_timeout(5, timecheck) return end
-    local loc = tonumber(tmppos)
-    if not loc then return end
-    --Change the equation below if you want to change at what point a file gets marked
-    --0-100
-    if loc >= 80 then
-        watched('timer')
-        --searching for new files if playlist mode is activated
-        --if you want this search to display osd message if files are found, remove the 'hide' argument below
-        if active then search('hide') end
-    else
-        --Change the number below if you want to change how often this function is ran
-        mp.add_timeout(5, timecheck)
-    end
+  if mark or not filename then return end
+  local percentpos = mp.get_property_number('percent-pos', 0)
+  --position in % when to mark file
+  if percentpos >= 80 then
+    watched('timer')
+    --searching for new files if playlist mode is activated
+    --if you want this search to display osd message if files are found, remove the 'hide' argument below
+    if active then search('hide') end
+    unseentimer:kill()
+  end
 end
 
 --marks episode as watched, invoked at timecheck() and shortcut (w)
---writes the name of the file into a textfile named list.txt
---this text file is loaded in search()
+--this file is loaded in search()
 function watched(args)
-    if filename == nil then return end
-    if mark == false then 
-        mark = true 
-    else 
-        if args~='timer' then mp.msg.info("File already marked as watched: " .. filename) end
-        return 
+  if not filename then return end
+  if not mark then
+    mark = true
+  else
+    if args~='timer' then msg.warn("File already marked as watched: "..filename) end
+    return
+  end
+  local file, err = io.open(settings.unseen_savedpath, "a+")
+  if not file then
+    msg.error("Error opening seen list in watched() : "..err or "")
+  else
+    local line = file:read("*l")
+    local match = false
+    while line ~= nil do
+      if line == filename then 
+        match = true
+        break
+      end
+      line = file:read("*l")
     end
-    local file, err = io.open(settings.unseen_savedpath, "a+")
-    if file==nil then
-        mp.msg.info("Error opening list.txt in watched()")
+    if not match then
+      msg.info("Marking as watched: " .. filename)
+      file:write(filename, "\n")
     else
-        local x=file:read("*l")
-        local match=false
-        while x ~= nil do 
-            if x==filename then match=true end
-            x=file:read("*l")
-        end
-        if not match then 
-            mp.msg.info("Marking as watched: " .. filename)
-            file:write(filename, "\n")
-        else
-            if args~='timer' then mp.msg.info("File already marked as watched: " .. filename) end
-        end
-        file:close()
+      if args ~= 'timer' then msg.warn("File already marked as watched: "..filename) end
     end
+    file:close()
+  end
 end
 
 --Toggles playlist mode to listen for new files and calls an initial search for files
-function activate(args)
-    if active==false then
-        if mp.get_property('idle-active')=='yes' then idle_timer('active') end
-        mp.msg.info("Activating playlist mode, listening for unseen files.")
-        mp.register_event('file-loaded', search)
-        active = true
-        search()
-    else
-        if mp.get_property('idle-active')=='yes' then idle_timer('deactive') end
-        mp.unregister_event('file-loaded', search)
-        mp.msg.info("Disabling playlist mode.")
-        active = false
-    end
+function activate(force)
+  if not active then
+    if mp.get_property('idle-active', 'no') == 'yes' then idletimer:resume() end
+      msg.info("Activating playlist mode, listening for unseen files.")
+      active = true
+      search()
+  else
+    if mp.get_property('idle-active', 'no') == 'yes' then idletimer:kill() end
+    msg.info("Playlist mode disabled")
+    active = false
+  end
 end
 
 --appends unseen episodes into playlist
 --if a new file is added to the folder, it will be appended on next search
 function search(args)
-    local seenlist= io.open(settings.unseen_savedpath, "r")
-    if seenlist == nil then mp.msg.info("Cannot write to list.txt file, check permissions or change path.") return end
-    local seen=seenlist:read("*l")
-    while seen ~= nil do
-        if not seenarray[seen] then
-            seenarray[seen]='true'
-        end
-        seen=seenlist:read("*l")
+  local seenlist, err = io.open(settings.unseen_savedpath, "r")
+  if not seenlist then msg.error("Cannot read seen list: "..err or "") return end
+  local seen = seenlist:read("*l")
+  while seen ~= nil do
+    if not seenarray[seen] then
+      seenarray[seen]='true'
     end
-    seenlist:close()
-    local count=0
-    local popen = io.popen(scan)
-    for dirx in popen:lines() do
-        if not seenarray[dirx] then
-            --checking that file is not being copied
-            local errcheck = io.open(settings.unseen_searchpath..dirx, "r") 
-            if errcheck then  
-                errcheck:close()
-                seenarray[dirx]='true'
-                count = count +1
-                mp.commandv("loadfile", settings.unseen_searchpath..dirx, "append-play")
-                mp.msg.info("Appended to playlist: " .. dirx)
-            end
-        end
+    seen = seenlist:read("*l")
+  end
+  seenlist:close()
+  local count = 0
+  local popen = io.popen(scan)
+  for line in popen:lines() do
+    if not seenarray[line] and line:sub(-1)~="/" then
+      --checking that file is readable
+      local errcheck, err = io.open(utils.join_path(settings.unseen_searchpath, line), "r") 
+      if errcheck then
+        errcheck:close()
+        seenarray[line]='true'
+        count = count + 1
+        mp.commandv("loadfile", settings.unseen_searchpath..line, "append-play")
+        msg.info("Loaded: "..line)
+      end
     end
-    if count ~= 0 and args~='hide' then 
-        mp.osd_message("Added total of: "..count.." files to playlist")
-    end
-    popen:close()
-    plen = tonumber(mp.get_property('playlist-count'))
+  end
+  if count ~= 0 and args ~= 'hide' then 
+    mp.osd_message("Added total of "..count.." files to playlist")
+  end
+  popen:close()
+  plen = mp.get_property_number('playlist-count', 1)
 end
+
+unseentimer = mp.add_periodic_timer(1, timecheck)
+unseentimer:kill()
+
+idletimer = mp.add_periodic_timer(5, idle_timer)
+idletimer:kill()
 
 if settings.unseen_load_on_start then
     activate()
 end
+
+--react to script messages
+function unseenmsg(msg, value)
+  --allows other scripts to set mark to avoid conflicts
+  if msg == "mark" then mark = value=="true" end
+end
+mp.register_script_message("unseenplaylist", unseenmsg)
 
 mp.register_event('file-loaded', on_load)
 mp.register_event('end-file', on_close)
@@ -204,6 +228,3 @@ mp.register_event('end-file', on_close)
 --change the lines below if you want to change keybindings
 mp.add_key_binding('w', 'mark-seen', watched)
 mp.add_key_binding('W', 'playlist-mode-toggle', activate)
-
-mp.add_key_binding('P', 'loadfiles', playlist)
-mp.add_key_binding('p', 'saveplaylist', save_playlist)
