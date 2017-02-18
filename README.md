@@ -14,21 +14,24 @@ Playlist-mode is the active state of the script. It needs to be activated with a
   
 ####Keybinds and active features
 All the controlling of this script is done through script messages:  
-`KEY script-message unseenplaylist command value`  
+`KEY script-message unseenplaylist command value message`  
   
 List of commands, values and their effects:  
   
 Command | Value | Effect
 --- | --- | ---
 activate | - / true / false | toggles(no value) / activates(true) / ends(false) - playlist-mode
-mark-seen | - | Manually marks file as seen
-search | hide / - | searches for new files once. Hide value will make osd message hidden.
-mark | true / false | Sets the value of mark without marking file. For other scripts to call to avoid conflicts.
+mark-seen | - / toggle / false | Marks as seen(no value) / Toggles seen status(toggle) / marks as unseen(false). If seen status is removed the script will not continue to check for 80% for marking.
+search |  - / hide | searches for new files once. Hide value will make osd message hidden.
+mark | true / false | Sets the value of mark without actually changing seen file. This is mainly for other scripts to call to avoid conflicts if nececcary. Will continue 80% checking on false.
   
+The message argument is a optional string that is only used for debugging. It can be used as description of why the message was sent for example from another script to avoid conflict.  
 examples:  
 `W script-message unseenplaylist activate` Toggles playlist-mode  
 `w script-message unseenplaylist mark-seen`  Marks file as seen manually  
 `alt+w script-message unseenplaylist search hide` Searches for files once  
+Playlistmanager.lua avoiding a conflict when deleting playing file:  
+`mp.command('script-message unseenplaylist mark true "Fake mark file to allow safe deletion from playlist")`  
   
   
 #####Setup:
