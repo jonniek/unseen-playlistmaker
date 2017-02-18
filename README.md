@@ -1,7 +1,7 @@
 
 #MPV unseen-playlistmaker
 -----------
-This script keeps track of your watched files from a directory locally, and on keybind enters playlist-mode to watch unseen files from that specified directory. This script operates based on filenames. Note that this script ignores files that are not readable(being written) but might not work properly with incomplete torrented files. I suggest storing incomplete torrents in a different directory.
+This script keeps track of your watched files from a directory locally, and on keybind enters playlist-mode to watch unseen files from that specified directory. This script operates based on filenames. Note that this script ignores files that are not readable(being written) but might not work properly with incomplete torrented files. I suggest storing incomplete torrents in a different directory. I have been recently refactoring a lot of the code lately so bugs may arise, please open an issue or pr if you find some.
   
 ####Passive features:
 * Marks file as seen into a specified file when surpassing 80% duration. Only applies for files in the unseen directory.  
@@ -26,10 +26,12 @@ search |  - / hide | searches for new files once. Hide value will make osd messa
 mark | true / false | Sets the value of mark without actually changing seen file. This is mainly for other scripts to call to avoid conflicts if nececcary. Will continue 80% checking on false.
   
 The message argument is a optional string that is only used for debugging. It can be used as description of why the message was sent for example from another script to avoid conflict.  
+  
 examples:  
 `W script-message unseenplaylist activate` Toggles playlist-mode  
 `w script-message unseenplaylist mark-seen`  Marks file as seen manually  
 `alt+w script-message unseenplaylist search hide` Searches for files once  
+  
 Playlistmanager.lua avoiding a conflict when deleting playing file:  
 `mp.command('script-message unseenplaylist mark true "Fake mark file to allow safe deletion from playlist")`  
   
