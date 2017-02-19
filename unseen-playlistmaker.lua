@@ -51,7 +51,7 @@ function create_searchquery(path, extensions, unix)
   if unix then
     return 'cd "'..escapepath(path, '"')..'";ls -1vp'..query..'2>/dev/null'
   else
-    return 'dir /b'..query
+    return 'dir /b'..(query:gsub("/","\\")) --Windows doesn't like dir/*
   end
 end
 
