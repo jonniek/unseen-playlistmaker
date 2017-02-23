@@ -7,7 +7,8 @@ local settings = {
   --toggle to load unseen playlistmaker on startup, use only if loading script manually
   load_on_start = false,
   --unseen-playlistmaker filetypes {'ext','ext2'}, use empty string {''} for all filetypes
-  allowed_extensions = {'mkv', 'mp4'},
+  allowed_extensions = {'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
+'mp3', 'wav', 'ogv', 'flac', 'm4a', 'wma' },
   --absolute path to media directory where unseen-playlistmaker should look for files. Do not use aliases like $HOME.
   --notice trailing slashes, escape backslashes on windows like c:\\dir\\
   unseen_directory = "/home/anon/Videos/",
@@ -22,10 +23,6 @@ local seenarray = {}
 local loadingarray = {}
 local active = false
 local mark = false
-
-function escapepath(dir, escapechar)
-  return string.gsub(dir, escapechar, '\\'..escapechar)
-end
 
 --check os
 if settings.linux_over_windows==nil then
@@ -49,7 +46,7 @@ function create_searchquery(path, extensions, unix)
     end
   end
   if unix then
-    return 'cd "'..escapepath(path, '"')..'";ls -1vp'..query..'2>/dev/null'
+    return 'cd "'..path:gsub('"', '\\"')..'";ls -1vp'..query..'2>/dev/null'
   else
     return 'dir /b'..(query:gsub("/","\\")) --Windows doesn't like dir/*
   end
