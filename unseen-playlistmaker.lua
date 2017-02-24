@@ -4,8 +4,6 @@ local settings = {
 
   --when playlist-mode is active append skipped files to end of playlist
   append_skipped = true,
-  --toggle to load unseen playlistmaker on startup, use only if loading script manually
-  load_on_start = false,
   --unseen-playlistmaker filetypes {'ext','ext2'}, use empty string {''} for all filetypes
   allowed_extensions = {'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
 'mp3', 'wav', 'ogv', 'flac', 'm4a', 'wma' },
@@ -255,7 +253,7 @@ unseentimer:kill()
 idletimer = mp.add_periodic_timer(5, idle_timer)
 idletimer:kill()
 
-if settings.load_on_start then
+if mp.get_opt("unseenplayliststart") then
     activate()
 end
 
