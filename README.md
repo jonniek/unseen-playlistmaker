@@ -35,6 +35,9 @@ examples:
 Playlistmanager.lua avoiding a conflict when deleting playing file:  
 `mp.command('script-message unseenplaylist mark true "Fake mark file to allow safe deletion from playlist")`  
   
+To activate unseenplaylistmanager on mpv startup use this as launch parameter:  
+`--script-opts=unseenplayliststart=true`  
+  
   
 #####Setup:
 1. Save lua in mpv/scripts folder.
