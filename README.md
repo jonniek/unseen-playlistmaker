@@ -24,7 +24,7 @@ activate | - / true / false | toggles(no value) / activates(true) / ends(false) 
 mark-seen | - / toggle / false | Marks as seen(no value) / Toggles seen status(toggle) / marks as unseen(false). If seen status is removed the script will not continue to check for 80% for marking.
 search |  - / hide | searches for new files once. Hide value will make osd message hidden.
 mark | true / false | Sets the value of mark without actually changing seen file. This is mainly for other scripts to call to avoid conflicts if nececcary. Will continue 80% checking on false.
-clean | - | Cleans the seen list file from entries that no longer are inside unseen directory
+clean | - / true | Cleans the seen list file from entries that no longer are inside unseen directory, add any value parameter to show an osd message how many files was cleaned
   
 The message argument is a optional string that is only used for debugging. It can be used as description of why the message was sent for example from another script to avoid conflict.  
   
