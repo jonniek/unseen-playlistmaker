@@ -18,7 +18,6 @@ local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 local seenarray = {}
-local loadingarray = {}
 local active = false
 local mark = false
 
@@ -148,9 +147,9 @@ function watched(args)
     msg.error("Error opening seen list in watched() : "..(err or ""))
   else
     local content = {}
-    local line = file:read("*l")
+
     local match = false
-    while line ~= nil do
+    for line in file:lines() do
       if line == filename then
         match = true
         --stop iterating if we will not rewrite the file
@@ -161,7 +160,6 @@ function watched(args)
         --create list of seen files without the current file incase of removal
         content[#content+1] = line
       end
-      line = file:read("*l")
     end
     if not match then
       msg.info("Marking as watched: " .. filename)
@@ -215,13 +213,11 @@ end
 function search(args)
   local seenlist, err = io.open(settings.seenlist_file, "r")
   if not seenlist then msg.error("Cannot read seen list: "..(err or "")) ; return end
-  local seen = seenlist:read("*l")
-  while seen ~= nil do
+  for seen in seenlist:lines() do
     if not seenarray[seen] then
       --mark files from seen list as true into seenarray
       seenarray[seen]='true'
     end
-    seen = seenlist:read("*l")
   end
   seenlist:close()
   local count = 0
@@ -244,7 +240,39 @@ function search(args)
     mp.osd_message("Added total of "..count.." files to playlist")
   end
   popen:close()
-  plen = mp.get_property_number('playlist-count', 1)
+  plen = mp.get_property_number('playlist-count', 0)
+end
+
+--clear all files not in directory from seen file
+function clean_seen_file()
+  --save unseen dir into array
+  local in_dir = {}
+  local popen, err = io.popen(scan)
+  if not popen then msg.error("Couldn't read directory: "..(err or "")) ; return end
+  for line in popen:lines() do
+    in_dir[line] = "true"
+  end
+  popen:close()
+
+  --examine what entries in seenfile exist in unseen dir array
+  --add matches into new seen array
+  local new_seen_array = {}
+  local seenlist, err = io.open(settings.seenlist_file, "r")
+  if not seenlist then msg.error("Cannot read seen list: "..(err or "")) ; return end
+  for seen in seenlist:lines() do
+    if in_dir[seen] then
+      table.insert(new_seen_array, seen)
+    end
+  end
+  seenlist:close()
+
+  --write the new seen array
+  local file, err = io.open(settings.seenlist_file, "w+" )
+  if not file then msg.error("Error trying to rewrite seen list: "..(err or "")) ; return end
+  for i = 1, #new_seen_array do
+    file:write( string.format( "%s\n", new_seen_array[i] ) )
+  end
+  file:close()
 end
 
 unseentimer = mp.add_periodic_timer(1, timecheck)
@@ -269,6 +297,7 @@ function unseenmsg(msg, value, reason)
   if msg == "activate" and value=="false" then activate(false) ; return end
   if msg == "activate" and value==nil then activate() ; return end
   if msg == "mark-seen" then watched(value) ; return end
+  if msg == "clean" then clean_seen_file() ; return end
 end
 mp.register_script_message("unseenplaylist", unseenmsg)
 mp.register_event('file-loaded', on_load)
