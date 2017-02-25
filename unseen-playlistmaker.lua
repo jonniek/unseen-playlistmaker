@@ -244,7 +244,7 @@ function search(args)
 end
 
 --clear all files not in directory from seen file
-function clean_seen_file()
+function clean_seen_file(message)
   --save unseen dir into array
   local in_dir = {}
   local popen, err = io.popen(scan)
@@ -273,6 +273,8 @@ function clean_seen_file()
     file:write( string.format( "%s\n", new_seen_array[i] ) )
   end
   file:close()
+  
+  if message then mp.osd_message("Cleaned "..(oldlength - #new_seen_array).." files from seen file") end
 end
 
 unseentimer = mp.add_periodic_timer(1, timecheck)
@@ -297,7 +299,7 @@ function unseenmsg(msg, value, reason)
   if msg == "activate" and value=="false" then activate(false) ; return end
   if msg == "activate" and value==nil then activate() ; return end
   if msg == "mark-seen" then watched(value) ; return end
-  if msg == "clean" then clean_seen_file() ; return end
+  if msg == "clean" then clean_seen_file(value) ; return end
 end
 mp.register_script_message("unseenplaylist", unseenmsg)
 mp.register_event('file-loaded', on_load)
