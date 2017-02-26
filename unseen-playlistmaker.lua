@@ -10,8 +10,8 @@ local settings = {
   --absolute path to media directory where unseen-playlistmaker should look for files. Do not use aliases like $HOME.
   --notice trailing slashes, escape backslashes on windows like c:\\dir\\
   unseen_directory = "/home/anon/Videos/",
-  --full path and name of file that contains seen files, don't keep as tmp if you want to save them
-  seenlist_file = "/tmp/unseenlist",
+  --full path and name of file that contains seen files
+  seenlist_file = "/home/anon/unseenlist",
 }
 
 local utils = require 'mp.utils'
@@ -171,20 +171,13 @@ function watched(args)
       --if file is marked but we want to remove it
       if args == 'toggle' or args == 'false' then
         file:close()
-        local file, err = io.open(settings.seenlist_file, "w+" )
-        if not file then
-          msg.error("Error trying to rewrite seen list: "..(err or ""))
-        else
-          for i = 1, #content do
-            file:write( string.format( "%s\n", content[i] ) )
-          end
-          file:close()
-          msg.info("Removing from watched: " .. filename)
-          mark = false
-          --set file into queue status
-          seenarray[filename] = 'queue'
-          return
-        end
+        local wrote = write_seen_file(content)
+        if not wrote then return end
+        msg.info("Removing from watched: " .. filename)
+        mark = false
+        --set file into queue status
+        seenarray[filename] = 'queue'
+        return
       elseif args ~= 'timer' then
         msg.warn("File already marked as watched: "..filename)
         unseentimer:kill()
@@ -259,7 +252,9 @@ function clean_seen_file(message)
   local new_seen_array = {}
   local seenlist, err = io.open(settings.seenlist_file, "r")
   if not seenlist then msg.error("Cannot read seen list: "..(err or "")) ; return end
+  local oldlength = 0
   for seen in seenlist:lines() do
+    oldlength = oldlength + 1
     if in_dir[seen] then
       table.insert(new_seen_array, seen)
     end
@@ -267,14 +262,19 @@ function clean_seen_file(message)
   seenlist:close()
 
   --write the new seen array
+  local wrote = write_seen_file(new_seen_array)
+  
+  if message and wrote then mp.osd_message("Cleaned "..(oldlength - #new_seen_array).." files from seen file") end
+end
+
+function write_seen_file(array)
   local file, err = io.open(settings.seenlist_file, "w+" )
-  if not file then msg.error("Error trying to rewrite seen list: "..(err or "")) ; return end
-  for i = 1, #new_seen_array do
-    file:write( string.format( "%s\n", new_seen_array[i] ) )
+  if not file then msg.error("Error trying to rewrite seen list: "..(err or "")) ; return false end
+  for i = 1, #array do
+    file:write( string.format( "%s\n", array[i] ) )
   end
   file:close()
-  
-  if message then mp.osd_message("Cleaned "..(oldlength - #new_seen_array).." files from seen file") end
+  return true
 end
 
 unseentimer = mp.add_periodic_timer(1, timecheck)
