@@ -1,18 +1,18 @@
 
-#MPV unseen-playlistmaker
+# MPV unseen-playlistmaker
 -----------
 This script keeps track of your watched files from a directory locally, and on keybind enters playlist-mode to watch unseen files from that specified directory. This script operates based on filenames. Note that this script ignores files that are not readable(being written) but might not work properly with incomplete torrented files. I suggest storing incomplete torrents in a different directory. I have been refactoring a lot of the code lately so bugs may arise, please open an issue or pr if you find some.
   
-####Passive features:
+#### Passive features:
 * Marks file as seen into a specified file when surpassing 80% duration. Only applies for files in the unseen directory.  
   
-####Playlist-mode features:
+#### Playlist-mode features:
 Playlist-mode is the active state of the script. It needs to be activated with a key, see keybinds section below.  
 * Immidiately append all your unseen files from unseen directory into the current playlist.  
 * Periodically continue to load new unseen files into playlist(when passing 80% duration). On idle searches every 5 sec.  
 * On file skip, appends it to the end of the playlist, allowing you to see files in the order you want. You can stop this behaviour by toggling the playlist-mode off or sending a script message `script-message unseenplaylist mark true` before changing file(this will treat the file as watched even if it isn't). Settings variable also has a toggle that will disable this behaviour completely.  
   
-####Keybinds and active features
+#### Keybinds and active features
 All the controlling of this script is done through script messages:  
 `KEY script-message unseenplaylist command value message`  
   
@@ -40,7 +40,7 @@ To activate unseenplaylistmanager on mpv startup use this as launch parameter:
 `--script-opts=unseenplayliststart=true`  
   
   
-#####Setup:
+##### Setup:
 1. Save lua in mpv/scripts folder.
 2. Edit settings variable in lua to represent your system and paths.
 3. Edit your input.conf to include binds that you want
