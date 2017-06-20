@@ -40,12 +40,12 @@ To activate unseenplaylistmanager on mpv startup use this as launch parameter:
 `--script-opts=unseenplayliststart=true`  
   
   
-##### Setup:
+#### Setup:
 1. Save lua in mpv/scripts folder.
 2. Edit settings variable in lua to represent your system and paths.
 3. Edit your input.conf to include binds that you want
-4. Run `mpv --idle` to create the seen list file in the path you chose. 
-5. If the file is created the script is ready, try it with (W). If it isn't created, there is problems with permissions. Try creating the file manually and granting read and write permissions.
+4. Run `mpv --idle` to create the seen list file in the path you chose, check the output in terminal. 
+5. If the file is created the script is ready, try it by activating. If it isn't created, there is problems with permissions. Try creating the file manually and granting read and write permissions.
 
 #### My other mpv scripts
 - [collection of scripts](https://github.com/donmaiq/mpv-scripts)
