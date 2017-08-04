@@ -36,10 +36,9 @@ function create_searchquery(path, extensions, unix)
   local query = ' '
   for i in pairs(extensions) do
     if unix then
-      if extensions[i] ~= "" then extensions[i] = "*"..extensions[i] end
-      query = query..extensions[i]..' '
+      query = query..'*.'..extensions[i]..' '
     else
-      query = query..'"'..path..'*'..extensions[i]..'" '
+      query = query..'"'..path..'*.'..extensions[i]..'" '
     end
   end
   if unix then
@@ -69,11 +68,18 @@ end
 
 function on_load()
   filename = mp.get_property('filename')
-  path = utils.join_path(mp.get_property('working-directory'), mp.get_property('path'))
+  path = mp.get_property('path')
+  if not path:match("^%a%a+:[/\\]") then
+    path = utils.join_path(mp.get_property('working-directory'), path)
+    directory = utils.split_path(path)
+    mark = false
+  else
+    path = nil
+    directory = nil
+    mark = true
+  end
   pos = mp.get_property_number('playlist-pos', 0)
   plen = mp.get_property_number('playlist-count', 0)
-  directory = utils.split_path(path)
-  mark = false
 
   --only track files that are in our searchdirectory
   if directory == settings.unseen_directory then
