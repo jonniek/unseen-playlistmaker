@@ -37,15 +37,16 @@ Playlistmanager.lua avoiding a conflict when deleting playing file:
 `mp.command('script-message unseenplaylist mark true "Fake mark file to allow safe deletion from playlist")`  
   
 To activate unseenplaylistmanager on mpv startup use this as launch parameter:  
-`--script-opts=unseenplayliststart=true`  
+`--script-opts=unseenplayliststart=true --idle=once`  
+requires --idle, or --idle=once(can be declared in mpv.conf as well) because the script will load files after mpv has started.
   
   
 #### Setup:
 1. Save lua in mpv/scripts folder.
 2. Edit settings variable in lua to represent your system and paths.
-3. Edit your input.conf to include binds that you want
+3. Edit your input.conf to include activate bind and other binds that you want
 4. Run `mpv --idle` to create the seen list file in the path you chose, check the output in terminal. 
-5. If the file is created the script is ready, try it by activating. If it isn't created, there is problems with permissions. Try creating the file manually and granting read and write permissions.
+5. If the file is created the script is ready, try it by activating(key you bound for activate in step 3). If it isn't created, there is problems with permissions. Try creating the file manually and granting read and write permissions.
 
 #### My other mpv scripts
 - [collection of scripts](https://github.com/donmaiq/mpv-scripts)
