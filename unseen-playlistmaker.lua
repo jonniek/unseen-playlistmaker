@@ -196,10 +196,10 @@ end
 --Toggles playlist mode to listen for new files and calls an initial search for files
 function activate(force)
   if ( not active or force == true ) and force ~= false then
-    if mp.get_property('idle-active', 'no') == 'yes' then idletimer:resume() end
-      msg.info("Activating playlist mode, listening for unseen files.")
-      active = true
-      search()
+    msg.info("Activating playlist mode, listening for unseen files.")
+    active = true
+    search()
+    idletimer:resume()
   elseif active or force == false then
     if mp.get_property('idle-active', 'no') == 'yes' then idletimer:kill() end
     msg.info("Playlist mode disabled")
