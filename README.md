@@ -1,7 +1,7 @@
 
 # MPV unseen-playlistmaker
 -----------
-This script keeps track of your watched files from a directory locally, and on keybind enters playlist-mode to watch unseen files from that specified directory. This script operates based on filenames. Note that this script ignores files that are not readable(being written) but might not work properly with incomplete torrented files. I suggest storing incomplete torrents in a different directory. I have been refactoring a lot of the code lately so bugs may arise, please open an issue or pr if you find some.
+This script keeps track of your watched files from a directory locally, and on keybind enters playlist-mode to watch unseen files from that specified directory. This script operates based on filenames. Note that this script ignores files that are not readable(being written) but might not work properly with incomplete files such as in progress torrented files.
   
 #### Passive features:
 * Marks file as seen into a specified file when surpassing 80% duration. Only applies for files in the unseen directory.  
