@@ -48,5 +48,3 @@ requires --idle, or --idle=once(can be declared in mpv.conf as well) because the
 4. Run `mpv --idle` to create the seen list file in the path you chose, check the output in terminal. 
 5. If the file is created the script is ready, try it by activating(key you bound for activate in step 3). If it isn't created, there is problems with permissions. Try creating the file manually and granting read and write permissions.
 
-#### My other mpv scripts
-- [collection of scripts](https://github.com/donmaiq/mpv-scripts)
